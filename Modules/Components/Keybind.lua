@@ -3,7 +3,18 @@
 --]]
 
 -- Mock services for local environment compatibility
-local UserInputService = {}
+local UserInputService = {
+    InputBegan = {
+        Connect = function(func)
+            return {Disconnect = function() end}
+        end
+    },
+    InputEnded = {
+        Connect = function(func)
+            return {Disconnect = function() end}
+        end
+    }
+}
 local Utils = require("Modules.Utils")
 
 local Keybind = {}

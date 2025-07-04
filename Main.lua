@@ -27,6 +27,84 @@ _G.Instance = {
             BackgroundTransparency = 0,
             BorderSizePixel = 0,
             ZIndex = 1,
+            TextXAlignment = "Center",
+            TextYAlignment = "Center",
+            TextColor3 = {R = 1, G = 1, B = 1},
+            BorderColor3 = {R = 0, G = 0, B = 0},
+            AutomaticSize = "None",
+            Visible = true,
+            Active = true,
+            ClipsDescendants = false,
+            Selectable = true,
+            ZIndexBehavior = "Sibling",
+            ResetOnSpawn = false,
+            SortOrder = "LayoutOrder",
+            LayoutOrder = 0,
+            FillDirection = "Horizontal",
+            HorizontalAlignment = "Left",
+            VerticalAlignment = "Top",
+            Padding = {Scale = 0, Offset = 0},
+            ClearButtonMode = "Never",
+            PlaceholderText = "",
+            TextEditable = true,
+            TextTruncate = "None",
+            MouseButton1Click = {
+                Connect = function(func)
+                    return {Disconnect = function() end}
+                end
+            },
+            MouseButton1Down = {
+                Connect = function(func)
+                    return {Disconnect = function() end}
+                end
+            },
+            MouseButton1Up = {
+                Connect = function(func)
+                    return {Disconnect = function() end}
+                end
+            },
+            MouseEnter = {
+                Connect = function(func)
+                    return {Disconnect = function() end}
+                end
+            },
+            MouseLeave = {
+                Connect = function(func)
+                    return {Disconnect = function() end}
+                end
+            },
+            InputBegan = {
+                Connect = function(func)
+                    return {Disconnect = function() end}
+                end
+            },
+            InputEnded = {
+                Connect = function(func)
+                    return {Disconnect = function() end}
+                end
+            },
+            InputChanged = {
+                Connect = function(func)
+                    return {Disconnect = function() end}
+                end
+            },
+            Focused = {
+                Connect = function(func)
+                    return {Disconnect = function() end}
+                end
+            },
+            FocusLost = {
+                Connect = function(func)
+                    return {Disconnect = function() end}
+                end
+            },
+            GetPropertyChangedSignal = function(property)
+                return {
+                    Connect = function(func)
+                        return {Disconnect = function() end}
+                    end
+                }
+            end,
             Destroy = function() end
         }
     end
@@ -56,19 +134,80 @@ _G.Vector2 = {
     end
 }
 
+_G.UDim = {
+    new = function(scale, offset)
+        return {Scale = scale, Offset = offset}
+    end
+}
+
+_G.TweenInfo = {
+    new = function(duration, style, direction, repeatCount, reverses, delayTime)
+        return {
+            Duration = duration or 1,
+            Style = style or Enum.EasingStyle.Quad,
+            Direction = direction or Enum.EasingDirection.Out,
+            RepeatCount = repeatCount or 0,
+            Reverses = reverses or false,
+            DelayTime = delayTime or 0
+        }
+    end
+}
+
+_G.ColorSequenceKeypoint = {
+    new = function(time, color)
+        return {Time = time, Value = color}
+    end
+}
+
+_G.ColorSequence = {
+    new = function(keypoints)
+        return {Keypoints = keypoints or {}}
+    end
+}
+
+_G.NumberSequenceKeypoint = {
+    new = function(time, value, envelope)
+        return {Time = time, Value = value, Envelope = envelope or 0}
+    end
+}
+
+_G.NumberSequence = {
+    new = function(keypoints)
+        return {Keypoints = keypoints or {}}
+    end
+}
+
 _G.Enum = {
     KeyCode = {F = "F", LeftShift = "LeftShift"},
     EasingStyle = {Quad = "Quad", Sine = "Sine"},
     EasingDirection = {In = "In", Out = "Out", InOut = "InOut"},
-    Font = {Gotham = "Gotham"}
+    Font = {Gotham = "Gotham", GothamBold = "GothamBold"},
+    TextXAlignment = {Left = "Left", Center = "Center", Right = "Right"},
+    TextYAlignment = {Top = "Top", Center = "Center", Bottom = "Bottom"},
+    AutomaticSize = {None = "None", X = "X", Y = "Y", XY = "XY"},
+    SizeConstraint = {RelativeXY = "RelativeXY", RelativeXX = "RelativeXX", RelativeYY = "RelativeYY"},
+    ZIndexBehavior = {Sibling = "Sibling", Global = "Global"},
+    SortOrder = {LayoutOrder = "LayoutOrder", Name = "Name"},
+    FillDirection = {Horizontal = "Horizontal", Vertical = "Vertical"},
+    HorizontalAlignment = {Left = "Left", Center = "Center", Right = "Right"},
+    VerticalAlignment = {Top = "Top", Center = "Center", Bottom = "Bottom"},
+    UserInputType = {MouseButton1 = "MouseButton1", Touch = "Touch", MouseMovement = "MouseMovement"},
+    ClearButtonMode = {Never = "Never", WhileEditing = "WhileEditing", UnlessEditing = "UnlessEditing", Always = "Always"},
+    TextTruncate = {None = "None", AtEnd = "AtEnd"}
 }
 
 -- Make globals available
 Instance = _G.Instance
 UDim2 = _G.UDim2
+UDim = _G.UDim
 Color3 = _G.Color3
 Vector2 = _G.Vector2
 Enum = _G.Enum
+TweenInfo = _G.TweenInfo
+ColorSequence = _G.ColorSequence
+ColorSequenceKeypoint = _G.ColorSequenceKeypoint
+NumberSequence = _G.NumberSequence
+NumberSequenceKeypoint = _G.NumberSequenceKeypoint
 
 local Players = {LocalPlayer = {}}
 local TweenService = {
@@ -78,7 +217,22 @@ local TweenService = {
 }
 local UserInputService = {
     TouchEnabled = false,
-    KeyboardEnabled = true
+    KeyboardEnabled = true,
+    InputBegan = {
+        Connect = function(func)
+            return {Disconnect = function() end}
+        end
+    },
+    InputChanged = {
+        Connect = function(func)
+            return {Disconnect = function() end}
+        end
+    },
+    InputEnded = {
+        Connect = function(func)
+            return {Disconnect = function() end}
+        end
+    }
 }
 local RunService = {
     Heartbeat = {
@@ -96,6 +250,31 @@ local CoreGui = {}
 
 local Player = Players.LocalPlayer
 local PlayerGui = Player
+
+-- Add missing global functions
+_G.spawn = function(func)
+    func()
+end
+
+_G.wait = function(time)
+    -- Mock wait function for testing
+    return time or 0
+end
+
+_G.tick = function()
+    -- Mock tick function that returns current time
+    return os.clock()
+end
+
+_G.warn = function(...)
+    -- Mock warn function for testing
+    print("WARNING:", ...)
+end
+
+spawn = _G.spawn
+wait = _G.wait
+tick = _G.tick
+warn = _G.warn
 
 -- Load modules
 local Utils = require("Modules.Utils")
@@ -121,6 +300,10 @@ function LXAIL:new()
     self.KeySystemEnabled = false
     self.ConfigManager = ConfigManager:new()
     self.Theme = Theme:new()
+    print("Theme initialized:", self.Theme and "SUCCESS" or "FAILED")
+    if self.Theme then
+        print("Theme GetColor test:", self.Theme:GetColor("Primary"))
+    end
     self.FloatingButton = nil
     self.MainScreenGui = nil
     self.KeybindConnection = nil
@@ -294,5 +477,5 @@ function LXAIL:Destroy()
     self.Notifications = {}
 end
 
--- Export the library
-return LXAIL
+-- Export an instance of the library
+return LXAIL:new()

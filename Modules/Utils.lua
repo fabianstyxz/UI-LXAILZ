@@ -518,4 +518,42 @@ function Utils.TypewriterEffect(textObject, finalText, speed, callback)
     end
 end
 
+function Utils.SetupHoverEffect(element, hoverColor, normalColor)
+    -- Mock hover effect for demo environment
+    if not element then return end
+    
+    -- Set initial color
+    if normalColor then
+        element.BackgroundColor3 = normalColor
+    end
+    
+    -- Create hover connections
+    if element.MouseEnter then
+        element.MouseEnter:Connect(function()
+            if hoverColor then
+                element.BackgroundColor3 = hoverColor
+            end
+        end)
+    end
+    
+    if element.MouseLeave then
+        element.MouseLeave:Connect(function()
+            if normalColor then
+                element.BackgroundColor3 = normalColor
+            end
+        end)
+    end
+end
+
+function Utils.CreatePadding(padding)
+    -- Mock padding for demo environment
+    return {
+        PaddingLeft = UDim.new(0, padding or 0),
+        PaddingRight = UDim.new(0, padding or 0),
+        PaddingTop = UDim.new(0, padding or 0),
+        PaddingBottom = UDim.new(0, padding or 0),
+        Parent = nil
+    }
+end
+
 return Utils
