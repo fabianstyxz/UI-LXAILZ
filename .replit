@@ -48,6 +48,10 @@ args = "Simple Modern Test"
 task = "workflow.run"
 args = "Ejemplo Completo"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Test Completo Componentes"
+
 [[workflows.workflow]]
 name = "Roblox UI Library"
 author = "agent"
@@ -119,3 +123,11 @@ author = "agent"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "lua Ejemplo_Completo_Uso.lua"
+
+[[workflows.workflow]]
+name = "Test Completo Componentes"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "lua Test_Todos_Componentes.lua"

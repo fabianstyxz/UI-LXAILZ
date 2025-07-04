@@ -1248,46 +1248,719 @@ function LXAIL:MakeDraggable(dragBar, frame)
     end)
 end
 
--- === PLACEHOLDER IMPLEMENTATIONS ===
--- These would be fully implemented with the modern design
+-- === COMPLETE COMPONENT IMPLEMENTATIONS ===
 
+-- Input Component
 function LXAIL:CreateInput(Tab, Options)
-    print("📝 CreateInput:", Options.Name or "Input")
-    return {Frame = Instance.new("Frame")}
+    local InputOptions = Options or {}
+    local Name = InputOptions.Name or "Input"
+    local PlaceholderText = InputOptions.PlaceholderText or ""
+    local Default = InputOptions.Default or ""
+    local RemoveTextAfterFocusLost = InputOptions.RemoveTextAfterFocusLost
+    local Flag = InputOptions.Flag
+    local Callback = InputOptions.Callback
+    
+    print("📝 CreateInput:", Name)
+    
+    local section = Instance.new("Frame")
+    section.BackgroundColor3 = LXAIL.ModernTheme.Tertiary
+    section.BackgroundTransparency = 0.3
+    section.Size = UDim2.new(0.95, 0, 0, 40)
+    section.BorderSizePixel = 0
+    section.Parent = Tab.Frame
+    CreateCorner(section, 8)
+    
+    local padding = Instance.new("UIPadding")
+    padding.PaddingLeft = UDim.new(0, 10)
+    padding.PaddingRight = UDim.new(0, 10)
+    padding.Parent = section
+    
+    local layout = Instance.new("UIListLayout")
+    layout.FillDirection = Enum.FillDirection.Horizontal
+    layout.VerticalAlignment = Enum.VerticalAlignment.Center
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    layout.Padding = UDim.new(0, 6)
+    layout.Parent = section
+    
+    local label = Instance.new("TextLabel")
+    label.Text = Name
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 18
+    label.TextColor3 = LXAIL.ModernTheme.TextSecondary
+    label.BackgroundTransparency = 1
+    label.Size = UDim2.new(0.4, 0, 1, 0)
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.LayoutOrder = 1
+    label.Parent = section
+    
+    local textBox = Instance.new("TextBox")
+    textBox.Size = UDim2.new(0.6, -6, 1, -8)
+    textBox.Font = Enum.Font.Gotham
+    textBox.TextSize = 16
+    textBox.TextColor3 = LXAIL.ModernTheme.Text
+    textBox.BackgroundColor3 = LXAIL.ModernTheme.Secondary
+    textBox.BorderSizePixel = 0
+    textBox.Text = Default
+    textBox.PlaceholderText = PlaceholderText
+    textBox.LayoutOrder = 2
+    textBox.Parent = section
+    CreateCorner(textBox, 4)
+    
+    if RemoveTextAfterFocusLost then
+        textBox.FocusLost:Connect(function()
+            textBox.Text = ""
+        end)
+    end
+    
+    textBox.FocusLost:Connect(function()
+        if Flag then
+            LXAIL.Flags[Flag] = textBox.Text
+        end
+        if Callback then
+            Callback(textBox.Text)
+        end
+    end)
+    
+    section.LayoutOrder = #Tab.Frame:GetChildren()
+    
+    if Flag then
+        LXAIL.Flags[Flag] = Default
+    end
+    
+    return {
+        Frame = section,
+        Value = textBox.Text,
+        Flag = Flag,
+        Set = function(self, newText)
+            textBox.Text = newText
+            if Flag then
+                LXAIL.Flags[Flag] = newText
+            end
+            if Callback then
+                Callback(newText)
+            end
+        end
+    }
 end
 
+-- Dropdown Component
 function LXAIL:CreateDropdown(Tab, Options)
-    print("📋 CreateDropdown:", Options.Name or "Dropdown")
-    return {Frame = Instance.new("Frame")}
+    local DropdownOptions = Options or {}
+    local Name = DropdownOptions.Name or "Dropdown"
+    local OptionsTable = DropdownOptions.Options or {}
+    local CurrentOption = DropdownOptions.CurrentOption or {}
+    local MultipleOptions = DropdownOptions.MultipleOptions or false
+    local Flag = DropdownOptions.Flag
+    local Callback = DropdownOptions.Callback
+    
+    print("📋 CreateDropdown:", Name)
+    
+    local section = Instance.new("Frame")
+    section.BackgroundColor3 = LXAIL.ModernTheme.Tertiary
+    section.BackgroundTransparency = 0.3
+    section.Size = UDim2.new(0.95, 0, 0, 40)
+    section.BorderSizePixel = 0
+    section.Parent = Tab.Frame
+    CreateCorner(section, 8)
+    
+    local padding = Instance.new("UIPadding")
+    padding.PaddingLeft = UDim.new(0, 10)
+    padding.PaddingRight = UDim.new(0, 10)
+    padding.Parent = section
+    
+    local layout = Instance.new("UIListLayout")
+    layout.FillDirection = Enum.FillDirection.Horizontal
+    layout.VerticalAlignment = Enum.VerticalAlignment.Center
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    layout.Padding = UDim.new(0, 6)
+    layout.Parent = section
+    
+    local label = Instance.new("TextLabel")
+    label.Text = Name
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 18
+    label.TextColor3 = LXAIL.ModernTheme.TextSecondary
+    label.BackgroundTransparency = 1
+    label.Size = UDim2.new(0.4, 0, 1, 0)
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.LayoutOrder = 1
+    label.Parent = section
+    
+    local dropdownButton = Instance.new("TextButton")
+    dropdownButton.Size = UDim2.new(0.6, -6, 1, -8)
+    dropdownButton.Font = Enum.Font.Gotham
+    dropdownButton.TextSize = 16
+    dropdownButton.TextColor3 = LXAIL.ModernTheme.Text
+    dropdownButton.BackgroundColor3 = LXAIL.ModernTheme.Secondary
+    dropdownButton.BorderSizePixel = 0
+    dropdownButton.Text = (type(CurrentOption) == "table" and CurrentOption[1]) or CurrentOption or "Select..."
+    dropdownButton.LayoutOrder = 2
+    dropdownButton.Parent = section
+    CreateCorner(dropdownButton, 4)
+    
+    local selectedOptions = type(CurrentOption) == "table" and CurrentOption or {CurrentOption}
+    local isOpen = false
+    
+    dropdownButton.MouseButton1Click:Connect(function()
+        if not isOpen then
+            -- Create dropdown list
+            local dropdownList = Instance.new("Frame")
+            dropdownList.Size = UDim2.new(1, 0, 0, math.min(#OptionsTable * 25, 150))
+            dropdownList.Position = UDim2.new(0, 0, 1, 2)
+            dropdownList.BackgroundColor3 = LXAIL.ModernTheme.Secondary
+            dropdownList.BorderSizePixel = 0
+            dropdownList.ZIndex = 10
+            dropdownList.Parent = dropdownButton
+            CreateCorner(dropdownList, 4)
+            
+            local listLayout = Instance.new("UIListLayout")
+            listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+            listLayout.Parent = dropdownList
+            
+            for i, option in ipairs(OptionsTable) do
+                local optionButton = Instance.new("TextButton")
+                optionButton.Size = UDim2.new(1, 0, 0, 25)
+                optionButton.BackgroundColor3 = LXAIL.ModernTheme.Secondary
+                optionButton.BorderSizePixel = 0
+                optionButton.Text = option
+                optionButton.TextColor3 = LXAIL.ModernTheme.Text
+                optionButton.Font = Enum.Font.Gotham
+                optionButton.TextSize = 14
+                optionButton.LayoutOrder = i
+                optionButton.Parent = dropdownList
+                
+                optionButton.MouseEnter:Connect(function()
+                    optionButton.BackgroundColor3 = LXAIL.ModernTheme.Accent
+                end)
+                
+                optionButton.MouseLeave:Connect(function()
+                    optionButton.BackgroundColor3 = LXAIL.ModernTheme.Secondary
+                end)
+                
+                optionButton.MouseButton1Click:Connect(function()
+                    if MultipleOptions then
+                        local index = table.find(selectedOptions, option)
+                        if index then
+                            table.remove(selectedOptions, index)
+                        else
+                            table.insert(selectedOptions, option)
+                        end
+                        dropdownButton.Text = table.concat(selectedOptions, ", ")
+                    else
+                        selectedOptions = {option}
+                        dropdownButton.Text = option
+                    end
+                    
+                    if Flag then
+                        LXAIL.Flags[Flag] = MultipleOptions and selectedOptions or selectedOptions[1]
+                    end
+                    if Callback then
+                        Callback(MultipleOptions and selectedOptions or selectedOptions[1])
+                    end
+                    
+                    if not MultipleOptions then
+                        dropdownList:Destroy()
+                        isOpen = false
+                    end
+                end)
+            end
+            
+            isOpen = true
+            
+            -- Close dropdown when clicking outside
+            spawn(function()
+                wait(0.1)
+                local connection
+                connection = UserInputService.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        if dropdownList.Parent then
+                            dropdownList:Destroy()
+                            isOpen = false
+                            connection:Disconnect()
+                        end
+                    end
+                end)
+            end)
+        end
+    end)
+    
+    section.LayoutOrder = #Tab.Frame:GetChildren()
+    
+    if Flag then
+        LXAIL.Flags[Flag] = MultipleOptions and selectedOptions or selectedOptions[1]
+    end
+    
+    return {
+        Frame = section,
+        Value = selectedOptions,
+        Flag = Flag,
+        Set = function(self, newOptions)
+            selectedOptions = type(newOptions) == "table" and newOptions or {newOptions}
+            dropdownButton.Text = MultipleOptions and table.concat(selectedOptions, ", ") or selectedOptions[1]
+            if Flag then
+                LXAIL.Flags[Flag] = MultipleOptions and selectedOptions or selectedOptions[1]
+            end
+            if Callback then
+                Callback(MultipleOptions and selectedOptions or selectedOptions[1])
+            end
+        end
+    }
 end
 
+-- ColorPicker Component
 function LXAIL:CreateColorPicker(Tab, Options)
-    print("🎨 CreateColorPicker:", Options.Name or "ColorPicker")
-    return {Frame = Instance.new("Frame")}
+    local ColorPickerOptions = Options or {}
+    local Name = ColorPickerOptions.Name or "ColorPicker"
+    local Color = ColorPickerOptions.Color or Color3.fromRGB(255, 0, 0)
+    local Flag = ColorPickerOptions.Flag
+    local Callback = ColorPickerOptions.Callback
+    
+    print("🎨 CreateColorPicker:", Name)
+    
+    local section = Instance.new("Frame")
+    section.BackgroundColor3 = LXAIL.ModernTheme.Tertiary
+    section.BackgroundTransparency = 0.3
+    section.Size = UDim2.new(0.95, 0, 0, 40)
+    section.BorderSizePixel = 0
+    section.Parent = Tab.Frame
+    CreateCorner(section, 8)
+    
+    local padding = Instance.new("UIPadding")
+    padding.PaddingLeft = UDim.new(0, 10)
+    padding.PaddingRight = UDim.new(0, 10)
+    padding.Parent = section
+    
+    local layout = Instance.new("UIListLayout")
+    layout.FillDirection = Enum.FillDirection.Horizontal
+    layout.VerticalAlignment = Enum.VerticalAlignment.Center
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    layout.Padding = UDim.new(0, 6)
+    layout.Parent = section
+    
+    local label = Instance.new("TextLabel")
+    label.Text = Name
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 18
+    label.TextColor3 = LXAIL.ModernTheme.TextSecondary
+    label.BackgroundTransparency = 1
+    label.Size = UDim2.new(0.7, 0, 1, 0)
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.LayoutOrder = 1
+    label.Parent = section
+    
+    local colorDisplay = Instance.new("Frame")
+    colorDisplay.Size = UDim2.new(0, 30, 0, 30)
+    colorDisplay.BackgroundColor3 = Color
+    colorDisplay.BorderSizePixel = 0
+    colorDisplay.LayoutOrder = 2
+    colorDisplay.Parent = section
+    CreateCorner(colorDisplay, 15)
+    
+    local colorButton = Instance.new("TextButton")
+    colorButton.Size = UDim2.new(1, 0, 1, 0)
+    colorButton.BackgroundTransparency = 1
+    colorButton.Text = ""
+    colorButton.Parent = colorDisplay
+    
+    local currentColor = Color
+    
+    colorButton.MouseButton1Click:Connect(function()
+        -- Simple color picker - cycles through preset colors
+        local colors = {
+            Color3.fromRGB(255, 0, 0),    -- Red
+            Color3.fromRGB(0, 255, 0),    -- Green
+            Color3.fromRGB(0, 0, 255),    -- Blue
+            Color3.fromRGB(255, 255, 0),  -- Yellow
+            Color3.fromRGB(255, 0, 255),  -- Magenta
+            Color3.fromRGB(0, 255, 255),  -- Cyan
+            Color3.fromRGB(255, 255, 255), -- White
+            Color3.fromRGB(0, 0, 0)       -- Black
+        }
+        
+        local currentIndex = 1
+        for i, color in ipairs(colors) do
+            if currentColor == color then
+                currentIndex = i
+                break
+            end
+        end
+        
+        currentIndex = currentIndex + 1
+        if currentIndex > #colors then
+            currentIndex = 1
+        end
+        
+        currentColor = colors[currentIndex]
+        colorDisplay.BackgroundColor3 = currentColor
+        
+        if Flag then
+            LXAIL.Flags[Flag] = currentColor
+        end
+        if Callback then
+            Callback(currentColor)
+        end
+    end)
+    
+    section.LayoutOrder = #Tab.Frame:GetChildren()
+    
+    if Flag then
+        LXAIL.Flags[Flag] = Color
+    end
+    
+    return {
+        Frame = section,
+        Value = currentColor,
+        Flag = Flag,
+        Set = function(self, newColor)
+            currentColor = newColor
+            colorDisplay.BackgroundColor3 = newColor
+            if Flag then
+                LXAIL.Flags[Flag] = newColor
+            end
+            if Callback then
+                Callback(newColor)
+            end
+        end
+    }
 end
 
+-- Keybind Component
 function LXAIL:CreateKeybind(Tab, Options)
-    print("⌨️ CreateKeybind:", Options.Name or "Keybind")
-    return {Frame = Instance.new("Frame")}
+    local KeybindOptions = Options or {}
+    local Name = KeybindOptions.Name or "Keybind"
+    local CurrentKeybind = KeybindOptions.CurrentKeybind or "F"
+    local HoldToInteract = KeybindOptions.HoldToInteract or false
+    local Flag = KeybindOptions.Flag
+    local Callback = KeybindOptions.Callback
+    
+    print("⌨️ CreateKeybind:", Name)
+    
+    local section = Instance.new("Frame")
+    section.BackgroundColor3 = LXAIL.ModernTheme.Tertiary
+    section.BackgroundTransparency = 0.3
+    section.Size = UDim2.new(0.95, 0, 0, 40)
+    section.BorderSizePixel = 0
+    section.Parent = Tab.Frame
+    CreateCorner(section, 8)
+    
+    local padding = Instance.new("UIPadding")
+    padding.PaddingLeft = UDim.new(0, 10)
+    padding.PaddingRight = UDim.new(0, 10)
+    padding.Parent = section
+    
+    local layout = Instance.new("UIListLayout")
+    layout.FillDirection = Enum.FillDirection.Horizontal
+    layout.VerticalAlignment = Enum.VerticalAlignment.Center
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    layout.Padding = UDim.new(0, 6)
+    layout.Parent = section
+    
+    local label = Instance.new("TextLabel")
+    label.Text = Name .. (HoldToInteract and " (Hold)" or "")
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 18
+    label.TextColor3 = LXAIL.ModernTheme.TextSecondary
+    label.BackgroundTransparency = 1
+    label.Size = UDim2.new(0.6, 0, 1, 0)
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.LayoutOrder = 1
+    label.Parent = section
+    
+    local keybindButton = Instance.new("TextButton")
+    keybindButton.Size = UDim2.new(0.4, -6, 1, -8)
+    keybindButton.Font = Enum.Font.Gotham
+    keybindButton.TextSize = 16
+    keybindButton.TextColor3 = LXAIL.ModernTheme.Text
+    keybindButton.BackgroundColor3 = LXAIL.ModernTheme.Secondary
+    keybindButton.BorderSizePixel = 0
+    keybindButton.Text = CurrentKeybind
+    keybindButton.LayoutOrder = 2
+    keybindButton.Parent = section
+    CreateCorner(keybindButton, 4)
+    
+    local currentKeybind = CurrentKeybind
+    local isBinding = false
+    
+    keybindButton.MouseButton1Click:Connect(function()
+        if not isBinding then
+            isBinding = true
+            keybindButton.Text = "Press Key..."
+            
+            local connection
+            connection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
+                if gameProcessed then return end
+                
+                local keyName = input.KeyCode.Name
+                if keyName and keyName ~= "Unknown" then
+                    currentKeybind = keyName
+                    keybindButton.Text = keyName
+                    isBinding = false
+                    connection:Disconnect()
+                    
+                    if Flag then
+                        LXAIL.Flags[Flag] = keyName
+                    end
+                    if Callback then
+                        Callback(keyName)
+                    end
+                end
+            end)
+        end
+    end)
+    
+    -- Handle keybind activation
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed or isBinding then return end
+        if input.KeyCode.Name == currentKeybind then
+            if Callback then
+                Callback(currentKeybind)
+            end
+        end
+    end)
+    
+    section.LayoutOrder = #Tab.Frame:GetChildren()
+    
+    if Flag then
+        LXAIL.Flags[Flag] = CurrentKeybind
+    end
+    
+    return {
+        Frame = section,
+        Value = currentKeybind,
+        Flag = Flag,
+        Set = function(self, newKeybind)
+            currentKeybind = newKeybind
+            keybindButton.Text = newKeybind
+            if Flag then
+                LXAIL.Flags[Flag] = newKeybind
+            end
+            if Callback then
+                Callback(newKeybind)
+            end
+        end
+    }
 end
 
+-- Paragraph Component
 function LXAIL:CreateParagraph(Tab, Options)
-    print("📄 CreateParagraph:", Options.Title or "Paragraph")
-    return {Frame = Instance.new("Frame")}
+    local ParagraphOptions = Options or {}
+    local Title = ParagraphOptions.Title or "Paragraph"
+    local Content = ParagraphOptions.Content or "This is a paragraph."
+    
+    print("📄 CreateParagraph:", Title)
+    
+    local section = Instance.new("Frame")
+    section.BackgroundColor3 = LXAIL.ModernTheme.Tertiary
+    section.BackgroundTransparency = 0.3
+    section.Size = UDim2.new(0.95, 0, 0, 60)
+    section.BorderSizePixel = 0
+    section.Parent = Tab.Frame
+    CreateCorner(section, 8)
+    
+    local padding = Instance.new("UIPadding")
+    padding.PaddingLeft = UDim.new(0, 15)
+    padding.PaddingRight = UDim.new(0, 15)
+    padding.PaddingTop = UDim.new(0, 10)
+    padding.PaddingBottom = UDim.new(0, 10)
+    padding.Parent = section
+    
+    local layout = Instance.new("UIListLayout")
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    layout.Padding = UDim.new(0, 5)
+    layout.Parent = section
+    
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Text = Title
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextSize = 18
+    titleLabel.TextColor3 = LXAIL.ModernTheme.TextSecondary
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Size = UDim2.new(1, 0, 0, 20)
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.LayoutOrder = 1
+    titleLabel.Parent = section
+    
+    local contentLabel = Instance.new("TextLabel")
+    contentLabel.Text = Content
+    contentLabel.Font = Enum.Font.Gotham
+    contentLabel.TextSize = 14
+    contentLabel.TextColor3 = LXAIL.ModernTheme.Text
+    contentLabel.BackgroundTransparency = 1
+    contentLabel.Size = UDim2.new(1, 0, 0, 25)
+    contentLabel.TextXAlignment = Enum.TextXAlignment.Left
+    contentLabel.TextWrapped = true
+    contentLabel.LayoutOrder = 2
+    contentLabel.Parent = section
+    
+    section.LayoutOrder = #Tab.Frame:GetChildren()
+    
+    return {
+        Frame = section,
+        SetContent = function(self, newContent)
+            contentLabel.Text = newContent
+        end
+    }
 end
 
+-- Label Component
 function LXAIL:CreateLabel(Tab, Options)
-    print("🏷️ CreateLabel:", Options.Name or "Label")
-    return {Frame = Instance.new("Frame")}
+    local LabelOptions = Options or {}
+    local Name = LabelOptions.Name or "Label"
+    local Text = LabelOptions.Text or LabelOptions.Content or "Label Text"
+    
+    print("🏷️ CreateLabel:", Name)
+    
+    local section = Instance.new("Frame")
+    section.BackgroundColor3 = LXAIL.ModernTheme.Tertiary
+    section.BackgroundTransparency = 0.3
+    section.Size = UDim2.new(0.95, 0, 0, 30)
+    section.BorderSizePixel = 0
+    section.Parent = Tab.Frame
+    CreateCorner(section, 8)
+    
+    local padding = Instance.new("UIPadding")
+    padding.PaddingLeft = UDim.new(0, 15)
+    padding.PaddingRight = UDim.new(0, 15)
+    padding.Parent = section
+    
+    local label = Instance.new("TextLabel")
+    label.Text = Text
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 16
+    label.TextColor3 = LXAIL.ModernTheme.Text
+    label.BackgroundTransparency = 1
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = section
+    
+    section.LayoutOrder = #Tab.Frame:GetChildren()
+    
+    return {
+        Frame = section,
+        Set = function(self, newText)
+            label.Text = newText
+        end
+    }
 end
 
+-- Divider Component
 function LXAIL:CreateDivider(Tab, Options)
-    print("━━━ CreateDivider:", Options.Name or "Divider", "━━━")
-    return {Frame = Instance.new("Frame")}
+    local DividerOptions = Options or {}
+    local Name = DividerOptions.Name or "Divider"
+    
+    print("━━━ CreateDivider:", Name, "━━━")
+    
+    local section = Instance.new("Frame")
+    section.BackgroundTransparency = 1
+    section.Size = UDim2.new(0.95, 0, 0, 20)
+    section.BorderSizePixel = 0
+    section.Parent = Tab.Frame
+    
+    local line = Instance.new("Frame")
+    line.Size = UDim2.new(1, 0, 0, 1)
+    line.Position = UDim2.new(0, 0, 0.5, 0)
+    line.BackgroundColor3 = LXAIL.ModernTheme.Secondary
+    line.BorderSizePixel = 0
+    line.Parent = section
+    
+    if Name ~= "Divider" then
+        local label = Instance.new("TextLabel")
+        label.Text = Name
+        label.Font = Enum.Font.Gotham
+        label.TextSize = 14
+        label.TextColor3 = LXAIL.ModernTheme.Text
+        label.BackgroundColor3 = LXAIL.ModernTheme.Background
+        label.Size = UDim2.new(0, #Name * 8 + 10, 1, 0)
+        label.Position = UDim2.new(0.5, -(#Name * 4 + 5), 0, 0)
+        label.TextXAlignment = Enum.TextXAlignment.Center
+        label.Parent = section
+    end
+    
+    section.LayoutOrder = #Tab.Frame:GetChildren()
+    
+    return {
+        Frame = section
+    }
 end
 
+-- Complete Notification System
 function LXAIL:Notify(Options)
-    print("🔔 Notification:", Options.Title or "Notification")
+    local NotificationOptions = Options or {}
+    local Title = NotificationOptions.Title or "Notification"
+    local Content = NotificationOptions.Content or "This is a notification"
+    local Duration = NotificationOptions.Duration or 5
+    local Type = NotificationOptions.Type or "Info"
+    
+    print("🔔 Notification:", Title)
+    
+    -- Create notification GUI
+    local notificationGui = Instance.new("ScreenGui")
+    notificationGui.Name = "LXAIL_Notification"
+    notificationGui.Parent = CoreGui or PlayerGui
+    
+    local notification = Instance.new("Frame")
+    notification.Size = UDim2.new(0, 300, 0, 80)
+    notification.Position = UDim2.new(1, -320, 0, 20)
+    notification.BackgroundColor3 = LXAIL.ModernTheme.Secondary
+    notification.BorderSizePixel = 0
+    notification.Parent = notificationGui
+    CreateCorner(notification, 8)
+    
+    -- Type color bar
+    local typeBar = Instance.new("Frame")
+    typeBar.Size = UDim2.new(0, 4, 1, 0)
+    typeBar.Position = UDim2.new(0, 0, 0, 0)
+    typeBar.BorderSizePixel = 0
+    typeBar.Parent = notification
+    
+    if Type == "Success" then
+        typeBar.BackgroundColor3 = LXAIL.ModernTheme.Accent
+    elseif Type == "Warning" then
+        typeBar.BackgroundColor3 = Color3.fromRGB(255, 200, 100)
+    elseif Type == "Error" then
+        typeBar.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+    else
+        typeBar.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
+    end
+    
+    -- Title
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Text = Title
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextSize = 16
+    titleLabel.TextColor3 = LXAIL.ModernTheme.Text
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Size = UDim2.new(1, -10, 0, 25)
+    titleLabel.Position = UDim2.new(0, 10, 0, 5)
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.Parent = notification
+    
+    -- Content
+    local contentLabel = Instance.new("TextLabel")
+    contentLabel.Text = Content
+    contentLabel.Font = Enum.Font.Gotham
+    contentLabel.TextSize = 14
+    contentLabel.TextColor3 = LXAIL.ModernTheme.Text
+    contentLabel.BackgroundTransparency = 1
+    contentLabel.Size = UDim2.new(1, -10, 0, 45)
+    contentLabel.Position = UDim2.new(0, 10, 0, 25)
+    contentLabel.TextXAlignment = Enum.TextXAlignment.Left
+    contentLabel.TextWrapped = true
+    contentLabel.Parent = notification
+    
+    -- Animate in
+    notification.Position = UDim2.new(1, 0, 0, 20)
+    CreateTween(notification, 0.3, {Position = UDim2.new(1, -320, 0, 20)})
+    
+    -- Auto remove after duration
+    spawn(function()
+        wait(Duration)
+        CreateTween(notification, 0.3, {Position = UDim2.new(1, 0, 0, 20)})
+        wait(0.3)
+        notificationGui:Destroy()
+    end)
+    
+    return notification
 end
 
 -- === RETURN LIBRARY ===
