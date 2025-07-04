@@ -1,0 +1,49 @@
+modules = ["lua"]
+
+[nix]
+channel = "stable-24_05"
+packages = ["lua"]
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Roblox UI Library"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "lua_test"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Roblox UI Library Demo"
+
+[[workflows.workflow]]
+name = "Roblox UI Library"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "lua Main.lua"
+
+[[workflows.workflow]]
+name = "lua_test"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "lua Main.lua"
+
+[[workflows.workflow]]
+name = "Roblox UI Library Demo"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "lua simple_demo.lua"
