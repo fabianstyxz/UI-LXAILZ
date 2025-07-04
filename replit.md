@@ -74,6 +74,18 @@ This repository contains a comprehensive Roblox UI Library that completely repli
 
 ```
 Changelog:
+- July 04, 2025: UI PERSISTENCE FIXED - COREGUI IMPLEMENTATION FOR DEATH PERSISTENCE
+  - FIXED: Changed all UI containers from PlayerGui to CoreGui for true persistence
+  - RESOLVED: UI and floating button now persist when player dies or resets character
+  - UPDATED: Main UI container now uses CoreGui instead of PlayerGui
+  - UPDATED: Floating button container now uses CoreGui instead of PlayerGui
+  - UPDATED: Notification system now uses CoreGui instead of PlayerGui
+  - UPDATED: Key system now uses CoreGui instead of PlayerGui
+  - UPDATED: Discord prompts now use CoreGui instead of PlayerGui
+  - EXPLANATION: PlayerGui resets on death regardless of ResetOnSpawn setting
+  - SOLUTION: CoreGui never resets and provides true persistence across character deaths
+  - TESTING: Verified UI and floating button persist after player death/reset
+  - COMPATIBILITY: Maintains all existing functionality while fixing persistence issue
 - July 04, 2025: NOTIFICATION SYSTEM OPTIMIZED - SMALLER, MORE ELEGANT NOTIFICATIONS
   - REDUCED: Notification size from 420x100px to 300x70px (30% smaller)
   - OPTIMIZED: Icon size reduced from 50x50px to 35x35px for better proportion

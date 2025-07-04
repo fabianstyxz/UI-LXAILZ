@@ -382,7 +382,7 @@ end
 local function createKeySystem(options)
     local keySystemGui = Instance.new("ScreenGui")
     keySystemGui.Name = "LXAIL_KeySystem"
-    keySystemGui.Parent = playerGui
+    keySystemGui.Parent = CoreGui
     keySystemGui.ResetOnSpawn = false
     keySystemGui.IgnoreGuiInset = true
     
@@ -626,19 +626,19 @@ function LXAIL:Notify(options)
     local notificationContainer = nil
     if game then
         -- Create notification container in Roblox environment
-        local existingContainer = playerGui:FindFirstChild("LXAIL_Notifications")
+        local existingContainer = CoreGui:FindFirstChild("LXAIL_Notifications")
         if not existingContainer then
             local gui = Instance.new("ScreenGui")
             gui.Name = "LXAIL_Notifications"
             gui.ResetOnSpawn = false
             gui.IgnoreGuiInset = true
-            gui.Parent = playerGui
+            gui.Parent = CoreGui
             notificationContainer = gui
         else
             notificationContainer = existingContainer
         end
     else
-        notificationContainer = playerGui
+        notificationContainer = CoreGui
     end
     
     -- Create notification (smaller size)
@@ -802,7 +802,7 @@ function LXAIL:Prompt(options)
     
     local promptGui = Instance.new("ScreenGui")
     promptGui.Name = "LXAILPrompt"
-    promptGui.Parent = playerGui
+    promptGui.Parent = CoreGui
     promptGui.ResetOnSpawn = false
     
     -- Background overlay
@@ -1047,7 +1047,7 @@ function LXAIL:CreateWindow(options)
     -- UI Principal (toggleable)
     local mainGui = Instance.new("ScreenGui")
     mainGui.Name = "LXAILUI"
-    mainGui.Parent = playerGui
+    mainGui.Parent = CoreGui
     mainGui.IgnoreGuiInset = true
     mainGui.ResetOnSpawn = false
     mainGui.Enabled = true
@@ -1168,7 +1168,7 @@ function LXAIL:CreateWindow(options)
     -- ScreenGui separado para el botón flotante (siempre visible)
     local buttonGui = Instance.new("ScreenGui")
     buttonGui.Name = "ToggleButtonGui"
-    buttonGui.Parent = playerGui
+    buttonGui.Parent = CoreGui
     buttonGui.IgnoreGuiInset = true
     buttonGui.ResetOnSpawn = false
 
