@@ -74,6 +74,16 @@ This repository contains a comprehensive Roblox UI Library that completely repli
 
 ```
 Changelog:
+- July 04, 2025: PROFILE POSITIONING FIXED WITH SCROLLABLE TAB SYSTEM
+  - FIXED: Profile positioning issue where profile appeared too far down in sidebar
+  - IMPLEMENTED: ScrollingFrame for tab container to handle multiple tabs elegantly
+  - ENHANCED: Profile now always positioned at bottom of sidebar (Position = UDim2.new(0, 0, 1, -60))
+  - SCROLLING: Tab container automatically scrolls when tabs exceed available space
+  - LAYOUT: Proper UIListLayout management with dynamic canvas size updates
+  - ANIMATION: Restored animated title letters with coroutine.wrap() and while true loop
+  - LETTERS: Title letters now continuously appear one by one, then disappear one by one
+  - COMPATIBILITY: All existing functionality maintained with improved UI organization
+  - TESTING: Verified with multiple tabs and all components working correctly
 - July 04, 2025: SUCCESSFUL MIGRATION TO REPLIT ENVIRONMENT - ALL SYSTEMS OPERATIONAL
   - MIGRATION: Completed migration from Replit Agent to standard Replit environment
   - INTEGRATION: Successfully integrated user's exact floating button implementation

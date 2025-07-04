@@ -1243,10 +1243,27 @@ function LXAIL:CreateWindow(options)
     sidebarCorner.CornerRadius = UDim.new(0, 10)
     sidebarCorner.Parent = sidebar
     
+    -- Create scrolling container for tabs
+    local tabScrollFrame = Instance.new("ScrollingFrame")
+    tabScrollFrame.Size = UDim2.new(1, 0, 1, -70) -- Leave space for profile (60px + 10px padding)
+    tabScrollFrame.Position = UDim2.new(0, 0, 0, 0)
+    tabScrollFrame.BackgroundTransparency = 1
+    tabScrollFrame.BorderSizePixel = 0
+    tabScrollFrame.ScrollBarThickness = 4
+    tabScrollFrame.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 100)
+    tabScrollFrame.ScrollingDirection = Enum.ScrollingDirection.Y
+    tabScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0) -- Will be updated dynamically
+    tabScrollFrame.Parent = sidebar
+    
     local sidebarLayout = Instance.new("UIListLayout")
     sidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
     sidebarLayout.Padding = UDim.new(0, 6)
-    sidebarLayout.Parent = sidebar
+    sidebarLayout.Parent = tabScrollFrame
+    
+    -- Update canvas size when tabs are added
+    sidebarLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        tabScrollFrame.CanvasSize = UDim2.new(0, 0, 0, sidebarLayout.AbsoluteContentSize.Y + 10)
+    end)
     
     -- Content panel
     local content = Instance.new("Frame")
@@ -1261,19 +1278,13 @@ function LXAIL:CreateWindow(options)
     contentCorner.CornerRadius = UDim.new(0, 10)
     contentCorner.Parent = content
     
-    -- Profile section
-    local spacer = Instance.new("Frame")
-    spacer.Size = UDim2.new(1, 0, 1, -170)
-    spacer.BackgroundTransparency = 1
-    spacer.LayoutOrder = 10
-    spacer.Parent = sidebar
-    
+    -- Profile section - positioned at bottom of sidebar
     local profile = Instance.new("Frame")
     profile.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
     profile.BackgroundTransparency = 0.25
     profile.Size = UDim2.new(1, 0, 0, 60)
+    profile.Position = UDim2.new(0, 0, 1, -60) -- Always at bottom
     profile.BorderSizePixel = 0
-    profile.LayoutOrder = 20
     profile.Parent = sidebar
     
     local profileCorner = Instance.new("UICorner")
@@ -1341,6 +1352,7 @@ function LXAIL:CreateWindow(options)
         GUI = mainGui,
         MainFrame = bg,
         Sidebar = sidebar,
+        TabScrollFrame = tabScrollFrame,
         Content = content,
         Tabs = {},
         TabFrames = {},
@@ -1370,7 +1382,7 @@ function LXAIL:CreateWindow(options)
         tabShadow.Size = UDim2.new(1, 0, 0, 50)
         tabShadow.BackgroundTransparency = 1
         tabShadow.LayoutOrder = #self.Tabs + 1
-        tabShadow.Parent = sidebar
+        tabShadow.Parent = tabScrollFrame
         
         local tab = Instance.new("TextButton")
         tab.Name = "Tab"
