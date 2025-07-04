@@ -46,11 +46,11 @@ args = "All Bugs Fixed Test"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "KeySystem New Format Test"
+args = "Final User Format Test"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Final User Format Test"
+args = "Fixed Version Test"
 
 [[workflows.workflow]]
 name = "Roblox UI Library"
@@ -117,17 +117,17 @@ task = "shell.exec"
 args = "lua Test_All_Bugs_Fixed.lua"
 
 [[workflows.workflow]]
-name = "KeySystem New Format Test"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "lua Test_KeySystem_New_Format.lua"
-
-[[workflows.workflow]]
 name = "Final User Format Test"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "lua Test_User_Final_Format.lua"
+
+[[workflows.workflow]]
+name = "Fixed Version Test"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "lua Test_Fixed_Version.lua"
