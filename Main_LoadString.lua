@@ -1089,27 +1089,22 @@ function LXAIL:CreateWindow(options)
     local function animateLetters()
         local fadeInInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
         local fadeOutInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-        
-        spawn(function()
-            while bg.Parent do
-                -- Fade in letters one by one
-                for _, letter in ipairs(letters) do
-                    tween(letter, fadeInInfo, {TextTransparency = 0})
-                    wait(0.1)
-                end
-                wait(0.6)
-                
-                -- Fade out letters one by one
-                for _, letter in ipairs(letters) do
-                    tween(letter, fadeOutInfo, {TextTransparency = 1})
-                    wait(0.1)
-                end
-                wait(0.6)
+
+        while true do
+            for _, letter in ipairs(letters) do
+                TweenService:Create(letter, fadeInInfo, {TextTransparency = 0}):Play()
+                wait(0.1)
             end
-        end)
+            wait(0.6)
+            for _, letter in ipairs(letters) do
+                TweenService:Create(letter, fadeOutInfo, {TextTransparency = 1}):Play()
+                wait(0.1)
+            end
+            wait(0.6)
+        end
     end
-    
-    animateLetters()
+
+    coroutine.wrap(animateLetters)()
     
     -- Close button
     local close = Instance.new("TextButton")
