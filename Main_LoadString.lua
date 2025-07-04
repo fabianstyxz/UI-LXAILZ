@@ -945,6 +945,40 @@ end
 
 
 
+-- === SCROLL DETECTION HELPER ===
+-- Helper function to check if an interaction should be ignored due to scrolling
+local function isScrollingInteraction(scrollDetection, minDistance)
+    minDistance = minDistance or 5
+    
+    if scrollDetection.isScrolling then
+        return true
+    end
+    
+    if scrollDetection.startPosition and scrollDetection.scrollStartPosition then
+        local currentPos = scrollDetection.scrollStartPosition
+        local distance = math.abs(currentPos.Y - scrollDetection.scrollStartPosition.Y)
+        return distance > minDistance
+    end
+    
+    return false
+end
+
+-- Handle mock environment gracefully if `task` is not available
+if not task then
+    task = {
+        delay = function(time, func)
+            spawn(function()
+                wait(time)
+                func()
+            end)
+            return {}
+        end,
+        cancel = function(id)
+            -- Mock cancel - no operation needed
+        end
+    }
+end
+
 -- === MAIN WINDOW CREATION ===
 function LXAIL:CreateWindow(options)
     options = options or {}
@@ -1255,6 +1289,41 @@ function LXAIL:CreateWindow(options)
     tabScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0) -- Will be updated dynamically
     tabScrollFrame.Parent = sidebar
     
+    -- Tab ScrollFrame click/scroll detection
+    local tabScrollDetection = {
+        isScrolling = false,
+        startPosition = nil,
+        scrollStartPosition = nil,
+        timeoutId = nil
+    }
+    
+    -- Monitor scroll changes for tab scroll frame
+    tabScrollFrame:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
+        if not tabScrollDetection.isScrolling then
+            tabScrollDetection.isScrolling = true
+            tabScrollDetection.scrollStartPosition = tabScrollFrame.CanvasPosition
+            
+            -- Reset scrolling flag after a short delay
+            if tabScrollDetection.timeoutId then
+                task.cancel(tabScrollDetection.timeoutId)
+            end
+            tabScrollDetection.timeoutId = task.delay(0.1, function()
+                tabScrollDetection.isScrolling = false
+                tabScrollDetection.scrollStartPosition = nil
+            end)
+        end
+    end)
+    
+    -- Input handling for tab scroll frame
+    if tabScrollFrame.InputBegan then
+        tabScrollFrame.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                tabScrollDetection.startPosition = input.Position
+                tabScrollDetection.isScrolling = false
+            end
+        end)
+    end
+    
     local sidebarLayout = Instance.new("UIListLayout")
     sidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
     sidebarLayout.Padding = UDim.new(0, 6)
@@ -1425,6 +1494,41 @@ function LXAIL:CreateWindow(options)
         frame.ClipsDescendants = true
         frame.Parent = content
         
+        -- Content ScrollFrame click/scroll detection
+        local contentScrollDetection = {
+            isScrolling = false,
+            startPosition = nil,
+            scrollStartPosition = nil,
+            timeoutId = nil
+        }
+        
+        -- Monitor scroll changes for content scroll frame
+        frame:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
+            if not contentScrollDetection.isScrolling then
+                contentScrollDetection.isScrolling = true
+                contentScrollDetection.scrollStartPosition = frame.CanvasPosition
+                
+                -- Reset scrolling flag after a short delay
+                if contentScrollDetection.timeoutId then
+                    task.cancel(contentScrollDetection.timeoutId)
+                end
+                contentScrollDetection.timeoutId = task.delay(0.1, function()
+                    contentScrollDetection.isScrolling = false
+                    contentScrollDetection.scrollStartPosition = nil
+                end)
+            end
+        end)
+        
+        -- Input handling for content scroll frame
+        if frame.InputBegan then
+            frame.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    contentScrollDetection.startPosition = input.Position
+                    contentScrollDetection.isScrolling = false
+                end
+            end)
+        end
+        
         local list = Instance.new("UIListLayout")
         list.SortOrder = Enum.SortOrder.LayoutOrder
         list.Padding = UDim.new(0, 10)
@@ -1450,8 +1554,13 @@ function LXAIL:CreateWindow(options)
             self.CurrentTab = tabObj
         end
         
-        -- Tab switching with glitch animation
+        -- Tab switching with glitch animation (with scroll detection)
         tab.MouseButton1Click:Connect(function()
+            -- Check if we're in the middle of scrolling
+            if tabScrollDetection.isScrolling then
+                return -- Don't switch tabs if we're scrolling
+            end
+            
             -- Update tab colors
             for _, tabData in pairs(self.Tabs) do
                 tabData.Button.BackgroundColor3 = Color3.fromRGB(35, 35, 35)

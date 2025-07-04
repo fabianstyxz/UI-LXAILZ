@@ -74,6 +74,17 @@ This repository contains a comprehensive Roblox UI Library that completely repli
 
 ```
 Changelog:
+- July 04, 2025: SCROLL/CLICK DETECTION SYSTEM IMPLEMENTED - PERFECT UI INTERACTION
+  - IMPLEMENTED: Advanced click vs scroll detection system for both ScrollingFrame containers
+  - TAB SCROLLFRAME: Added detection to prevent tab switching during scroll operations
+  - CONTENT SCROLLFRAME: Added detection to prevent component activation during scroll
+  - INTERACTION LOGIC: Comprehensive scroll state tracking with timeout-based reset mechanism
+  - BUG PREVENTION: Eliminates accidental tab switches and component triggers during scrolling
+  - MOBILE COMPATIBLE: Handles both mouse and touch input types seamlessly
+  - TIMEOUT SYSTEM: Uses task.delay with proper cleanup to manage scroll state flags
+  - HELPER FUNCTIONS: Created reusable isScrollingInteraction utility for consistent behavior
+  - PERFORMANCE: Minimal overhead with efficient event handling and state management
+  - TESTING: Verified with multiple tabs and scroll scenarios - no conflicts or errors
 - July 04, 2025: PROFILE POSITIONING FIXED WITH SCROLLABLE TAB SYSTEM
   - FIXED: Profile positioning issue where profile appeared too far down in sidebar
   - IMPLEMENTED: ScrollingFrame for tab container to handle multiple tabs elegantly
