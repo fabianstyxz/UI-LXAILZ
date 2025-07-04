@@ -14,18 +14,230 @@
 -- ████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
 
 -- === ROBLOX SERVICES ===
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-local HttpService = game:GetService("HttpService")
-local TextService = game:GetService("TextService")
-local GuiService = game:GetService("GuiService")
-local Players = game:GetService("Players")
-local CoreGui = game:GetService("CoreGui")
-local SoundService = game:GetService("SoundService")
+local TweenService, UserInputService, RunService, HttpService, TextService, GuiService, Players, CoreGui, SoundService, player, playerGui
 
-local player = Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
+if game then
+    -- Running in Roblox environment
+    TweenService = game:GetService("TweenService")
+    UserInputService = game:GetService("UserInputService")
+    RunService = game:GetService("RunService")
+    HttpService = game:GetService("HttpService")
+    TextService = game:GetService("TextService")
+    GuiService = game:GetService("GuiService")
+    Players = game:GetService("Players")
+    CoreGui = game:GetService("CoreGui")
+    SoundService = game:GetService("SoundService")
+    player = Players.LocalPlayer
+    playerGui = player:WaitForChild("PlayerGui")
+else
+    -- Mock environment for local testing
+    TweenService = {
+        Create = function(obj, info, props) 
+            return {
+                Play = function() print("TweenService:Create() - Playing tween") end,
+                Completed = {
+                    Connect = function(self, func) print("TweenService - Tween completed") if func then func() end end
+                }
+            } 
+        end
+    }
+    UserInputService = {
+        InputBegan = {Connect = function(self, func) print("UserInputService.InputBegan connected") end},
+        InputEnded = {Connect = function(self, func) print("UserInputService.InputEnded connected") end},
+        TouchEnabled = true,
+        KeyboardEnabled = true,
+        MouseEnabled = true
+    }
+    RunService = {
+        Heartbeat = {Connect = function(self, func) print("RunService.Heartbeat connected") end},
+        Stepped = {Connect = function(self, func) print("RunService.Stepped connected") end}
+    }
+    HttpService = {
+        JSONEncode = function(self, data) return "{\"mock\":\"data\"}" end,
+        JSONDecode = function(self, json) return {mock = "data"} end
+    }
+    TextService = {
+        GetTextSize = function(self, text, textSize, font, frameSize) 
+            return Vector2.new(#text * textSize * 0.5, textSize)
+        end
+    }
+    GuiService = {
+        MenuOpened = {Connect = function(self, func) print("GuiService.MenuOpened connected") end}
+    }
+    Players = {
+        LocalPlayer = {
+            Name = "TestPlayer",
+            UserId = 12345
+        }
+    }
+    CoreGui = {}
+    SoundService = {}
+    player = Players.LocalPlayer
+    playerGui = {
+        Name = "PlayerGui",
+        Parent = nil
+    }
+    
+    -- Mock Roblox classes and functions
+    Instance = {
+        new = function(className)
+            return {
+                ClassName = className,
+                Name = className,
+                Parent = nil,
+                Size = UDim2.new(0, 100, 0, 100),
+                Position = UDim2.new(0, 0, 0, 0),
+                BackgroundColor3 = Color3.new(1, 1, 1),
+                BackgroundTransparency = 0,
+                BorderSizePixel = 1,
+                ZIndex = 1,
+                Text = "",
+                TextColor3 = Color3.new(0, 0, 0),
+                TextSize = 14,
+                Font = "Gotham",
+                TextXAlignment = "Center",
+                TextYAlignment = "Center",
+                TextWrapped = false,
+                Image = "",
+                ImageTransparency = 0,
+                ScaleType = "Stretch",
+                SliceCenter = nil,
+                SoundId = "",
+                Volume = 0.5,
+                ResetOnSpawn = false,
+                MouseButton1Click = {Connect = function(self, func) print("MouseButton1Click connected") end},
+                Changed = {Connect = function(self, func) print("Changed event connected") end},
+                Ended = {Connect = function(self, func) print("Sound Ended event connected") end},
+                Play = function(self) print("Playing sound:", self.SoundId) end,
+                Stop = function(self) print("Stopping sound:", self.SoundId) end,
+                Destroy = function(self) print("Destroying", self.ClassName) end
+            }
+        end
+    }
+    
+    UDim2 = {
+        new = function(xScale, xOffset, yScale, yOffset)
+            return {
+                X = {Scale = xScale or 0, Offset = xOffset or 0},
+                Y = {Scale = yScale or 0, Offset = yOffset or 0}
+            }
+        end
+    }
+    
+    UDim = {
+        new = function(scale, offset)
+            return {Scale = scale or 0, Offset = offset or 0}
+        end
+    }
+    
+    Vector2 = {
+        new = function(x, y)
+            return {X = x or 0, Y = y or 0}
+        end
+    }
+    
+    Color3 = {
+        new = function(r, g, b)
+            return {R = r or 0, G = g or 0, B = b or 0}
+        end,
+        fromRGB = function(r, g, b)
+            return {R = (r or 0)/255, G = (g or 0)/255, B = (b or 0)/255}
+        end
+    }
+    
+    ColorSequence = {
+        new = function(colors)
+            return {Colors = colors or {}}
+        end
+    }
+    
+    ColorSequenceKeypoint = {
+        new = function(time, color)
+            return {Time = time or 0, Value = color or Color3.new(1, 1, 1)}
+        end
+    }
+    
+    TweenInfo = {
+        new = function(duration, style, direction, repeatCount, reverses, delayTime)
+            return {
+                Time = duration or 1,
+                EasingStyle = style or "Quad",
+                EasingDirection = direction or "Out",
+                RepeatCount = repeatCount or 0,
+                Reverses = reverses or false,
+                DelayTime = delayTime or 0
+            }
+        end
+    }
+    
+    Enum = {
+        EasingStyle = {
+            Quad = "Quad",
+            Back = "Back",
+            Bounce = "Bounce",
+            Elastic = "Elastic"
+        },
+        EasingDirection = {
+            In = "In",
+            Out = "Out",
+            InOut = "InOut"
+        },
+        Font = {
+            Gotham = "Gotham",
+            GothamBold = "GothamBold",
+            SourceSans = "SourceSans"
+        },
+        TextXAlignment = {
+            Left = "Left",
+            Center = "Center",
+            Right = "Right"
+        },
+        TextYAlignment = {
+            Top = "Top",
+            Center = "Center",
+            Bottom = "Bottom"
+        },
+        ScaleType = {
+            Stretch = "Stretch",
+            Slice = "Slice",
+            Tile = "Tile",
+            Fit = "Fit"
+        }
+    }
+    
+    Rect = {
+        new = function(left, top, right, bottom)
+            return {
+                Left = left or 0,
+                Top = top or 0,
+                Right = right or 0,
+                Bottom = bottom or 0
+            }
+        end
+    }
+    
+    NumberSequence = {
+        new = function(value)
+            return {Value = value or 0}
+        end
+    }
+    
+    NumberSequenceKeypoint = {
+        new = function(time, value)
+            return {Time = time or 0, Value = value or 0}
+        end
+    }
+    
+    -- Mock global functions
+    spawn = function(func)
+        print("spawn() called with function")
+        if func then func() end
+    end
+    
+    wait = function(time)
+        print("wait(" .. (time or 0) .. ") called")
+    end
+end
 
 -- === LXAIL LIBRARY ===
 local LXAIL = {
