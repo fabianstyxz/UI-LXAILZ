@@ -44,6 +44,10 @@ args = "Simple Modern Test"
 task = "workflow.run"
 args = "LXAIL Fixed Test"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "All Bugs Fixed Test"
+
 [[workflows.workflow]]
 name = "Roblox UI Library"
 author = "agent"
@@ -107,3 +111,11 @@ author = "agent"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "lua Test_Fixed_LoadString.lua"
+
+[[workflows.workflow]]
+name = "All Bugs Fixed Test"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "lua Test_All_Bugs_Fixed.lua"
