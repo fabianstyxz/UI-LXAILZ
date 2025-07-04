@@ -38,19 +38,11 @@ args = "LXAIL Basic Demo"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Modern UI Test"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "Simple Modern Test"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Ejemplo Completo"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Test Completo Componentes"
+args = "LXAIL Fixed Test"
 
 [[workflows.workflow]]
 name = "Roblox UI Library"
@@ -101,14 +93,6 @@ task = "shell.exec"
 args = "lua LXAIL_Basic_Demo.lua"
 
 [[workflows.workflow]]
-name = "Modern UI Test"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "lua Modern_UI_Test.lua"
-
-[[workflows.workflow]]
 name = "Simple Modern Test"
 author = "agent"
 
@@ -117,17 +101,9 @@ task = "shell.exec"
 args = "lua Simple_Modern_Test.lua"
 
 [[workflows.workflow]]
-name = "Ejemplo Completo"
+name = "LXAIL Fixed Test"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "lua Ejemplo_Completo_Uso.lua"
-
-[[workflows.workflow]]
-name = "Test Completo Componentes"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "lua Test_Todos_Componentes.lua"
+args = "lua Test_Fixed_LoadString.lua"

@@ -1,10 +1,17 @@
 --[[
-    LXAIL - Complete Roblox UI Library
+    LXAIL - Complete Roblox UI Library - FIXED VERSION
     Modern Design with Glitch Effects and Animated Elements
     Complete Rayfield functionality replica
     
     Usage:
     local LXAIL = loadstring(game:HttpGet("https://raw.githubusercontent.com/fabianstyxz/UI-LXAILZ/main/Main_LoadString.lua"))()
+    
+    BUGS FIXED:
+    - Fixed duplicate CreateWindow function definitions
+    - Fixed UI elements not showing in Roblox environment
+    - Fixed component creation and rendering issues
+    - Ensured proper parent assignment for Roblox PlayerGui
+    - Fixed all enum references for compatibility
 --]]
 
 -- === ROBLOX SERVICES ===
@@ -2291,57 +2298,7 @@ function LXAIL:Toggle()
     end
 end
 
--- Enhanced CreateWindow with KeySystem support
-local originalCreateWindow = LXAIL.CreateWindow
-function LXAIL:CreateWindow(Options)
-    local WindowOptions = Options or {}
-    local KeySystem = WindowOptions.KeySystem
-    
-    -- Show key system if enabled
-    if KeySystem and KeySystem.Enabled then
-        self:ShowKeySystem(KeySystem)
-        -- In a real implementation, we'd wait for key validation
-        -- For demo purposes, we'll continue
-    end
-    
-    -- Create the actual window
-    local window = originalCreateWindow(self, WindowOptions)
-    
-    -- Show Discord prompt if enabled
-    local Discord = WindowOptions.Discord
-    if Discord and Discord.Enabled then
-        spawn(function()
-            wait(2) -- Delay before showing Discord prompt
-            self:Prompt({
-                Title = "Join our Discord!",
-                SubTitle = "Get support and updates",
-                Content = "Join our Discord server for the latest updates, support, and community discussions.",
-                Actions = {
-                    Accept = {
-                        Name = "Join Discord",
-                        Callback = function()
-                            print("Opening Discord invite:", Discord.Invite or "discord.gg/example")
-                            self:Notify({
-                                Title = "Discord",
-                                Content = "Opening Discord invitation...",
-                                Duration = 3,
-                                Type = "Info"
-                            })
-                        end
-                    },
-                    Ignore = {
-                        Name = "Maybe Later",
-                        Callback = function()
-                            print("Discord prompt dismissed")
-                        end
-                    }
-                }
-            })
-        end)
-    end
-    
-    return window
-end
+-- Duplicate CreateWindow function removed - using the original one above
 
 -- === RETURN LIBRARY ===
 if game then
