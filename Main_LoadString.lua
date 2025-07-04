@@ -641,11 +641,11 @@ function LXAIL:Notify(options)
         notificationContainer = playerGui
     end
     
-    -- Create notification
+    -- Create notification (smaller size)
     local notification = Instance.new("Frame")
     notification.Name = "LXAILNotification"
-    notification.Size = UDim2.new(0, 420, 0, 100)
-    notification.Position = UDim2.new(1, -440, 0, 20 + (#self.Notifications * 110))
+    notification.Size = UDim2.new(0, 300, 0, 70)
+    notification.Position = UDim2.new(1, -320, 0, 20 + (#self.Notifications * 80))
     notification.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     notification.BorderSizePixel = 0
     notification.Parent = notificationContainer
@@ -686,14 +686,14 @@ function LXAIL:Notify(options)
     }
     typeBorder.BackgroundColor3 = typeColors[notificationType] or typeColors.Info
     
-    -- Icon
+    -- Icon (smaller)
     local icon = Instance.new("TextLabel")
     icon.Name = "Icon"
-    icon.Size = UDim2.new(0, 50, 0, 50)
-    icon.Position = UDim2.new(0, 15, 0, 10)
+    icon.Size = UDim2.new(0, 35, 0, 35)
+    icon.Position = UDim2.new(0, 10, 0, 17)
     icon.BackgroundTransparency = 1
     icon.TextColor3 = typeBorder.BackgroundColor3
-    icon.TextSize = 30
+    icon.TextSize = 20
     icon.Font = Enum.Font.GothamBold
     icon.TextXAlignment = Enum.TextXAlignment.Center
     icon.TextYAlignment = Enum.TextYAlignment.Center
@@ -708,29 +708,29 @@ function LXAIL:Notify(options)
     }
     icon.Text = typeIcons[notificationType] or typeIcons.Info
     
-    -- Title
+    -- Title (smaller)
     local titleLabel = Instance.new("TextLabel")
     titleLabel.Name = "Title"
-    titleLabel.Size = UDim2.new(1, -80, 0, 30)
-    titleLabel.Position = UDim2.new(0, 70, 0, 10)
+    titleLabel.Size = UDim2.new(1, -60, 0, 20)
+    titleLabel.Position = UDim2.new(0, 50, 0, 8)
     titleLabel.BackgroundTransparency = 1
     titleLabel.Text = title
     titleLabel.TextColor3 = Color3.fromRGB(230, 230, 230)
-    titleLabel.TextSize = 20
+    titleLabel.TextSize = 16
     titleLabel.Font = Enum.Font.GothamBold
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
     titleLabel.TextYAlignment = Enum.TextYAlignment.Center
     titleLabel.Parent = notification
     
-    -- Content
+    -- Content (smaller)
     local contentLabel = Instance.new("TextLabel")
     contentLabel.Name = "Content"
-    contentLabel.Size = UDim2.new(1, -80, 0, 40)
-    contentLabel.Position = UDim2.new(0, 70, 0, 40)
+    contentLabel.Size = UDim2.new(1, -60, 0, 25)
+    contentLabel.Position = UDim2.new(0, 50, 0, 28)
     contentLabel.BackgroundTransparency = 1
     contentLabel.Text = content
     contentLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
-    contentLabel.TextSize = 15
+    contentLabel.TextSize = 13
     contentLabel.Font = Enum.Font.Gotham
     contentLabel.TextXAlignment = Enum.TextXAlignment.Left
     contentLabel.TextYAlignment = Enum.TextYAlignment.Top
@@ -749,10 +749,10 @@ function LXAIL:Notify(options)
     closeButton.Font = Enum.Font.GothamBold
     closeButton.Parent = notification
     
-    -- Animations
-    notification.Position = UDim2.new(1, 0, 0, 20 + (#self.Notifications * 110))
+    -- Animations (adjusted for smaller size)
+    notification.Position = UDim2.new(1, 0, 0, 20 + (#self.Notifications * 80))
     tween(notification, TweenInfo.new(0.5, Enum.EasingStyle.Back), {
-        Position = UDim2.new(1, -440, 0, 20 + (#self.Notifications * 110))
+        Position = UDim2.new(1, -320, 0, 20 + (#self.Notifications * 80))
     })
     
     -- Add to notifications list
@@ -772,10 +772,10 @@ function LXAIL:Notify(options)
                 end
             end
             
-            -- Reposition remaining notifications
+            -- Reposition remaining notifications (adjusted for smaller size)
             for i, notif in ipairs(self.Notifications) do
                 tween(notif, TweenInfo.new(0.3), {
-                    Position = UDim2.new(1, -440, 0, 20 + ((i-1) * 110))
+                    Position = UDim2.new(1, -320, 0, 20 + ((i-1) * 80))
                 })
             end
         end)

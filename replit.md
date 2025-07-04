@@ -74,6 +74,16 @@ This repository contains a comprehensive Roblox UI Library that completely repli
 
 ```
 Changelog:
+- July 04, 2025: NOTIFICATION SYSTEM OPTIMIZED - SMALLER, MORE ELEGANT NOTIFICATIONS
+  - REDUCED: Notification size from 420x100px to 300x70px (30% smaller)
+  - OPTIMIZED: Icon size reduced from 50x50px to 35x35px for better proportion
+  - IMPROVED: Title font size reduced from 20px to 16px for better readability
+  - ENHANCED: Content font size reduced from 15px to 13px for compact display
+  - ADJUSTED: Position offset from -440px to -320px for proper alignment
+  - UPDATED: Spacing between notifications from 110px to 80px for better stacking
+  - MAINTAINED: All notification functionality (Success, Warning, Error, Info types)
+  - PRESERVED: Smooth animations and auto-close functionality
+  - TESTING: Verified with comprehensive notification test suite
 - July 04, 2025: CREATEKEYBIND FUNCTIONALITY FIXED - COMPLETE KEY DETECTION SYSTEM
   - FIXED: CreateKeybind now properly executes callbacks when assigned keys are pressed
   - DETECTION: Added comprehensive key press detection using UserInputService.InputBegan
