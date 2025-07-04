@@ -381,6 +381,12 @@ function Tab:CreateToggle(Options)
     end
     
     table.insert(self.Components, ToggleData)
+    
+    -- Update UI if this tab is currently selected
+    if self.Window and self.Window.CurrentTab == self and self.Window.ContentScroll then
+        self.Window:CreateComponentUI(ToggleData)
+    end
+    
     return ToggleData
 end
 
@@ -419,6 +425,12 @@ function Tab:CreateSlider(Options)
     end
     
     table.insert(self.Components, SliderData)
+    
+    -- Update UI if this tab is currently selected
+    if self.Window and self.Window.CurrentTab == self and self.Window.ContentScroll then
+        self.Window:CreateComponentUI(SliderData)
+    end
+    
     return SliderData
 end
 
@@ -438,6 +450,12 @@ function Tab:CreateButton(Options)
     end
     
     table.insert(self.Components, ButtonData)
+    
+    -- Update UI if this tab is currently selected
+    if self.Window and self.Window.CurrentTab == self and self.Window.ContentScroll then
+        self.Window:CreateComponentUI(ButtonData)
+    end
+    
     return ButtonData
 end
 
@@ -609,6 +627,12 @@ function Tab:CreateLabel(Options)
     end
     
     table.insert(self.Components, LabelData)
+    
+    -- Update UI if this tab is currently selected
+    if self.Window and self.Window.CurrentTab == self and self.Window.ContentScroll then
+        self.Window:CreateComponentUI(LabelData)
+    end
+    
     return LabelData
 end
 
@@ -622,6 +646,12 @@ function Tab:CreateDivider(Options)
     }
     
     table.insert(self.Components, DividerData)
+    
+    -- Update UI if this tab is currently selected
+    if self.Window and self.Window.CurrentTab == self and self.Window.ContentScroll then
+        self.Window:CreateComponentUI(DividerData)
+    end
+    
     return DividerData
 end
 
@@ -648,6 +678,14 @@ function Window.new(options)
             Title = self.LoadingTitle,
             Subtitle = self.LoadingSubtitle
         })
+        
+        -- Wait for loading to complete then create main UI
+        spawn(function()
+            wait(3) -- Wait for loading screen to finish
+            self:CreateMainUI()
+        end)
+    else
+        self:CreateMainUI()
     end
     
     -- Initialize KeySystem if enabled
@@ -661,6 +699,152 @@ function Window.new(options)
     end
     
     return self
+end
+
+function Window:CreateMainUI()
+    -- Create main ScreenGui
+    self.ScreenGui = Instance.new("ScreenGui")
+    self.ScreenGui.Name = "LXAIL_UI"
+    self.ScreenGui.Parent = CoreGui
+    self.ScreenGui.ResetOnSpawn = false
+    
+    -- Main window frame
+    self.MainFrame = Instance.new("Frame")
+    self.MainFrame.Name = "MainWindow"
+    self.MainFrame.Size = UDim2.new(0, 600, 0, 400)
+    self.MainFrame.Position = UDim2.new(0.5, -300, 0.5, -200)
+    self.MainFrame.BackgroundColor3 = LXAIL.CurrentTheme.Background
+    self.MainFrame.BorderSizePixel = 0
+    self.MainFrame.Active = true
+    self.MainFrame.Draggable = false
+    self.MainFrame.Parent = self.ScreenGui
+    
+    -- Main frame corner
+    local MainCorner = Instance.new("UICorner")
+    MainCorner.CornerRadius = UDim.new(0, 12)
+    MainCorner.Parent = self.MainFrame
+    
+    -- Make draggable
+    Utils:MakeDraggable(self.MainFrame, true)
+    
+    -- Title bar
+    self.TitleBar = Instance.new("Frame")
+    self.TitleBar.Name = "TitleBar"
+    self.TitleBar.Size = UDim2.new(1, 0, 0, 50)
+    self.TitleBar.Position = UDim2.new(0, 0, 0, 0)
+    self.TitleBar.BackgroundColor3 = LXAIL.CurrentTheme.Secondary
+    self.TitleBar.BorderSizePixel = 0
+    self.TitleBar.Parent = self.MainFrame
+    
+    local TitleCorner = Instance.new("UICorner")
+    TitleCorner.CornerRadius = UDim.new(0, 12)
+    TitleCorner.Parent = self.TitleBar
+    
+    -- Fix title bar corners
+    local TitleFix = Instance.new("Frame")
+    TitleFix.Size = UDim2.new(1, 0, 0, 25)
+    TitleFix.Position = UDim2.new(0, 0, 1, -25)
+    TitleFix.BackgroundColor3 = LXAIL.CurrentTheme.Secondary
+    TitleFix.BorderSizePixel = 0
+    TitleFix.Parent = self.TitleBar
+    
+    -- Title text
+    self.TitleLabel = Instance.new("TextLabel")
+    self.TitleLabel.Name = "Title"
+    self.TitleLabel.Size = UDim2.new(1, -100, 1, 0)
+    self.TitleLabel.Position = UDim2.new(0, 20, 0, 0)
+    self.TitleLabel.BackgroundTransparency = 1
+    self.TitleLabel.Text = self.Name
+    self.TitleLabel.TextColor3 = LXAIL.CurrentTheme.Text
+    self.TitleLabel.TextSize = 18
+    self.TitleLabel.Font = Enum.Font.GothamBold
+    self.TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    self.TitleLabel.Parent = self.TitleBar
+    
+    -- Close button
+    self.CloseButton = Instance.new("TextButton")
+    self.CloseButton.Name = "CloseButton"
+    self.CloseButton.Size = UDim2.new(0, 30, 0, 30)
+    self.CloseButton.Position = UDim2.new(1, -40, 0, 10)
+    self.CloseButton.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+    self.CloseButton.BorderSizePixel = 0
+    self.CloseButton.Text = "×"
+    self.CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    self.CloseButton.TextSize = 20
+    self.CloseButton.Font = Enum.Font.GothamBold
+    self.CloseButton.Parent = self.TitleBar
+    
+    local CloseCorner = Instance.new("UICorner")
+    CloseCorner.CornerRadius = UDim.new(0, 8)
+    CloseCorner.Parent = self.CloseButton
+    
+    self.CloseButton.MouseButton1Click:Connect(function()
+        self:Toggle()
+    end)
+    
+    -- Tab container
+    self.TabContainer = Instance.new("Frame")
+    self.TabContainer.Name = "TabContainer"
+    self.TabContainer.Size = UDim2.new(0, 150, 1, -50)
+    self.TabContainer.Position = UDim2.new(0, 0, 0, 50)
+    self.TabContainer.BackgroundColor3 = LXAIL.CurrentTheme.Secondary
+    self.TabContainer.BorderSizePixel = 0
+    self.TabContainer.Parent = self.MainFrame
+    
+    local TabCorner = Instance.new("UICorner")
+    TabCorner.CornerRadius = UDim.new(0, 0)
+    TabCorner.Parent = self.TabContainer
+    
+    -- Tab list layout
+    self.TabList = Instance.new("UIListLayout")
+    self.TabList.FillDirection = Enum.FillDirection.Vertical
+    self.TabList.SortOrder = Enum.SortOrder.LayoutOrder
+    self.TabList.Padding = UDim.new(0, 2)
+    self.TabList.Parent = self.TabContainer
+    
+    -- Content container
+    self.ContentContainer = Instance.new("Frame")
+    self.ContentContainer.Name = "ContentContainer"
+    self.ContentContainer.Size = UDim2.new(1, -150, 1, -50)
+    self.ContentContainer.Position = UDim2.new(0, 150, 0, 50)
+    self.ContentContainer.BackgroundColor3 = LXAIL.CurrentTheme.Background
+    self.ContentContainer.BorderSizePixel = 0
+    self.ContentContainer.Parent = self.MainFrame
+    
+    -- Content scroll
+    self.ContentScroll = Instance.new("ScrollingFrame")
+    self.ContentScroll.Name = "ContentScroll"
+    self.ContentScroll.Size = UDim2.new(1, -20, 1, -20)
+    self.ContentScroll.Position = UDim2.new(0, 10, 0, 10)
+    self.ContentScroll.BackgroundTransparency = 1
+    self.ContentScroll.BorderSizePixel = 0
+    self.ContentScroll.ScrollBarThickness = 6
+    self.ContentScroll.ScrollBarImageColor3 = LXAIL.CurrentTheme.Accent
+    self.ContentScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+    self.ContentScroll.Parent = self.ContentContainer
+    
+    -- Content layout
+    self.ContentLayout = Instance.new("UIListLayout")
+    self.ContentLayout.FillDirection = Enum.FillDirection.Vertical
+    self.ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    self.ContentLayout.Padding = UDim.new(0, 8)
+    self.ContentLayout.Parent = self.ContentScroll
+    
+    -- Update scroll canvas when content changes
+    self.ContentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        self.ContentScroll.CanvasSize = UDim2.new(0, 0, 0, self.ContentLayout.AbsoluteContentSize.Y + 20)
+    end)
+    
+    -- Slide in animation
+    self.MainFrame.Position = UDim2.new(0.5, -300, 1, 200)
+    self.MainFrame:TweenPosition(UDim2.new(0.5, -300, 0.5, -200), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.5, true)
+    
+    LXAIL:Notify({
+        Title = "LXAIL Ready",
+        Content = "Interface loaded successfully! Create tabs to get started.",
+        Duration = 3,
+        Type = "Success"
+    })
 end
 
 function Window:InitializeKeySystem()
@@ -696,12 +880,271 @@ function Window:CreateTab(Options)
     local TabOptions = Options or {}
     local tab = Tab.new(self, TabOptions)
     table.insert(self.Tabs, tab)
+    
+    -- Create visual tab if main UI exists
+    if self.MainFrame then
+        self:CreateVisualTab(tab)
+    end
+    
     return tab
+end
+
+function Window:CreateVisualTab(tab)
+    -- Create tab button
+    local TabButton = Instance.new("TextButton")
+    TabButton.Name = "Tab_" .. tab.Name
+    TabButton.Size = UDim2.new(1, -10, 0, 40)
+    TabButton.Position = UDim2.new(0, 5, 0, 0)
+    TabButton.BackgroundColor3 = LXAIL.CurrentTheme.Tertiary
+    TabButton.BorderSizePixel = 0
+    TabButton.Text = tab.Name
+    TabButton.TextColor3 = LXAIL.CurrentTheme.TextDark
+    TabButton.TextSize = 14
+    TabButton.Font = Enum.Font.Gotham
+    TabButton.TextXAlignment = Enum.TextXAlignment.Left
+    TabButton.LayoutOrder = #self.Tabs
+    TabButton.Parent = self.TabContainer
+    
+    local TabCorner = Instance.new("UICorner")
+    TabCorner.CornerRadius = UDim.new(0, 6)
+    TabCorner.Parent = TabButton
+    
+    -- Tab icon (optional)
+    if tab.Icon then
+        local TabIcon = Instance.new("ImageLabel")
+        TabIcon.Name = "Icon"
+        TabIcon.Size = UDim2.new(0, 20, 0, 20)
+        TabIcon.Position = UDim2.new(0, 10, 0, 10)
+        TabIcon.BackgroundTransparency = 1
+        TabIcon.Image = tab.Icon
+        TabIcon.Parent = TabButton
+        
+        -- Adjust text position
+        TabButton.TextXAlignment = Enum.TextXAlignment.Center
+        local TextPadding = Instance.new("UIPadding")
+        TextPadding.PaddingLeft = UDim.new(0, 40)
+        TextPadding.Parent = TabButton
+    else
+        local TextPadding = Instance.new("UIPadding")
+        TextPadding.PaddingLeft = UDim.new(0, 15)
+        TextPadding.Parent = TabButton
+    end
+    
+    -- Store references
+    tab.Button = TabButton
+    tab.Window = self
+    
+    -- Click handler
+    TabButton.MouseButton1Click:Connect(function()
+        self:SelectTab(tab)
+    end)
+    
+    -- Select first tab automatically
+    if #self.Tabs == 1 then
+        self:SelectTab(tab)
+    end
+    
+    return TabButton
+end
+
+function Window:SelectTab(selectedTab)
+    -- Update all tab buttons
+    for _, tab in pairs(self.Tabs) do
+        if tab.Button then
+            if tab == selectedTab then
+                tab.Button.BackgroundColor3 = LXAIL.CurrentTheme.Accent
+                tab.Button.TextColor3 = LXAIL.CurrentTheme.Text
+            else
+                tab.Button.BackgroundColor3 = LXAIL.CurrentTheme.Tertiary
+                tab.Button.TextColor3 = LXAIL.CurrentTheme.TextDark
+            end
+        end
+    end
+    
+    -- Clear current content
+    for _, child in pairs(self.ContentScroll:GetChildren()) do
+        if child:IsA("Frame") then
+            child:Destroy()
+        end
+    end
+    
+    -- Show selected tab content
+    self:DisplayTabContent(selectedTab)
+    self.CurrentTab = selectedTab
+end
+
+function Window:DisplayTabContent(tab)
+    for _, component in pairs(tab.Components) do
+        self:CreateComponentUI(component)
+    end
+end
+
+function Window:CreateComponentUI(component)
+    if component.Type == "Toggle" then
+        self:CreateToggleUI(component)
+    elseif component.Type == "Slider" then
+        self:CreateSliderUI(component)
+    elseif component.Type == "Button" then
+        self:CreateButtonUI(component)
+    elseif component.Type == "Input" then
+        self:CreateInputUI(component)
+    elseif component.Type == "Dropdown" then
+        self:CreateDropdownUI(component)
+    elseif component.Type == "ColorPicker" then
+        self:CreateColorPickerUI(component)
+    elseif component.Type == "Keybind" then
+        self:CreateKeybindUI(component)
+    elseif component.Type == "Paragraph" then
+        self:CreateParagraphUI(component)
+    elseif component.Type == "Label" then
+        self:CreateLabelUI(component)
+    elseif component.Type == "Divider" then
+        self:CreateDividerUI(component)
+    end
+end
+
+function Window:CreateToggleUI(component)
+    local ToggleFrame = Instance.new("Frame")
+    ToggleFrame.Name = "Toggle_" .. component.Name
+    ToggleFrame.Size = UDim2.new(1, -20, 0, 40)
+    ToggleFrame.BackgroundColor3 = LXAIL.CurrentTheme.Secondary
+    ToggleFrame.BorderSizePixel = 0
+    ToggleFrame.Parent = self.ContentScroll
+    
+    local ToggleCorner = Instance.new("UICorner")
+    ToggleCorner.CornerRadius = UDim.new(0, 8)
+    ToggleCorner.Parent = ToggleFrame
+    
+    local ToggleLabel = Instance.new("TextLabel")
+    ToggleLabel.Name = "Label"
+    ToggleLabel.Size = UDim2.new(1, -60, 1, 0)
+    ToggleLabel.Position = UDim2.new(0, 15, 0, 0)
+    ToggleLabel.BackgroundTransparency = 1
+    ToggleLabel.Text = component.Name
+    ToggleLabel.TextColor3 = LXAIL.CurrentTheme.Text
+    ToggleLabel.TextSize = 14
+    ToggleLabel.Font = Enum.Font.Gotham
+    ToggleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    ToggleLabel.Parent = ToggleFrame
+    
+    local ToggleButton = Instance.new("TextButton")
+    ToggleButton.Name = "Button"
+    ToggleButton.Size = UDim2.new(0, 40, 0, 20)
+    ToggleButton.Position = UDim2.new(1, -50, 0, 10)
+    ToggleButton.BackgroundColor3 = component.Value and LXAIL.CurrentTheme.Accent or LXAIL.CurrentTheme.Tertiary
+    ToggleButton.BorderSizePixel = 0
+    ToggleButton.Text = ""
+    ToggleButton.Parent = ToggleFrame
+    
+    local ButtonCorner = Instance.new("UICorner")
+    ButtonCorner.CornerRadius = UDim.new(0, 10)
+    ButtonCorner.Parent = ToggleButton
+    
+    local ToggleIndicator = Instance.new("Frame")
+    ToggleIndicator.Name = "Indicator"
+    ToggleIndicator.Size = UDim2.new(0, 16, 0, 16)
+    ToggleIndicator.Position = component.Value and UDim2.new(1, -18, 0, 2) or UDim2.new(0, 2, 0, 2)
+    ToggleIndicator.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    ToggleIndicator.BorderSizePixel = 0
+    ToggleIndicator.Parent = ToggleButton
+    
+    local IndicatorCorner = Instance.new("UICorner")
+    IndicatorCorner.CornerRadius = UDim.new(0, 8)
+    IndicatorCorner.Parent = ToggleIndicator
+    
+    ToggleButton.MouseButton1Click:Connect(function()
+        component.Value = not component.Value
+        
+        -- Update visual state
+        ToggleButton.BackgroundColor3 = component.Value and LXAIL.CurrentTheme.Accent or LXAIL.CurrentTheme.Tertiary
+        ToggleIndicator:TweenPosition(
+            component.Value and UDim2.new(1, -18, 0, 2) or UDim2.new(0, 2, 0, 2),
+            Enum.EasingDirection.Out,
+            Enum.EasingStyle.Quart,
+            0.2,
+            true
+        )
+        
+        -- Update flag and call callback
+        if component.Flag then
+            LXAIL.Flags[component.Flag] = component.Value
+        end
+        component.Callback(component.Value)
+    end)
+end
+
+function Window:CreateButtonUI(component)
+    local ButtonFrame = Instance.new("TextButton")
+    ButtonFrame.Name = "Button_" .. component.Name
+    ButtonFrame.Size = UDim2.new(1, -20, 0, 35)
+    ButtonFrame.BackgroundColor3 = LXAIL.CurrentTheme.Accent
+    ButtonFrame.BorderSizePixel = 0
+    ButtonFrame.Text = component.Name
+    ButtonFrame.TextColor3 = LXAIL.CurrentTheme.Text
+    ButtonFrame.TextSize = 14
+    ButtonFrame.Font = Enum.Font.GothamBold
+    ButtonFrame.Parent = self.ContentScroll
+    
+    local ButtonCorner = Instance.new("UICorner")
+    ButtonCorner.CornerRadius = UDim.new(0, 8)
+    ButtonCorner.Parent = ButtonFrame
+    
+    ButtonFrame.MouseButton1Click:Connect(function()
+        -- Ripple effect
+        ButtonFrame.BackgroundColor3 = Color3.fromRGB(
+            math.min(255, LXAIL.CurrentTheme.Accent.R * 255 + 20),
+            math.min(255, LXAIL.CurrentTheme.Accent.G * 255 + 20),
+            math.min(255, LXAIL.CurrentTheme.Accent.B * 255 + 20)
+        )
+        
+        spawn(function()
+            wait(0.1)
+            ButtonFrame.BackgroundColor3 = LXAIL.CurrentTheme.Accent
+        end)
+        
+        component.Callback()
+    end)
+end
+
+function Window:CreateLabelUI(component)
+    local LabelFrame = Instance.new("TextLabel")
+    LabelFrame.Name = "Label_" .. (component.Text or "Label")
+    LabelFrame.Size = UDim2.new(1, -20, 0, 25)
+    LabelFrame.BackgroundTransparency = 1
+    LabelFrame.Text = component.Text
+    LabelFrame.TextColor3 = LXAIL.CurrentTheme.TextDark
+    LabelFrame.TextSize = 14
+    LabelFrame.Font = Enum.Font.Gotham
+    LabelFrame.TextXAlignment = Enum.TextXAlignment.Left
+    LabelFrame.TextWrapped = true
+    LabelFrame.Parent = self.ContentScroll
+    
+    -- Auto-resize based on text
+    local textSize = Utils:GetTextSize(component.Text, 14, Enum.Font.Gotham, Vector2.new(LabelFrame.AbsoluteSize.X, math.huge))
+    LabelFrame.Size = UDim2.new(1, -20, 0, math.max(25, textSize.Y + 5))
+end
+
+function Window:CreateDividerUI(component)
+    local DividerFrame = Instance.new("Frame")
+    DividerFrame.Name = "Divider"
+    DividerFrame.Size = UDim2.new(1, -40, 0, 1)
+    DividerFrame.BackgroundColor3 = LXAIL.CurrentTheme.Tertiary
+    DividerFrame.BorderSizePixel = 0
+    DividerFrame.Parent = self.ContentScroll
 end
 
 function Window:Toggle()
     self.Visible = not self.Visible
-    -- Toggle visibility logic here
+    
+    if self.ScreenGui then
+        self.ScreenGui.Enabled = self.Visible
+        
+        if self.Visible then
+            -- Slide in animation
+            self.MainFrame.Position = UDim2.new(0.5, -300, 1, 200)
+            self.MainFrame:TweenPosition(UDim2.new(0.5, -300, 0.5, -200), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.5, true)
+        end
+    end
 end
 
 -- === MAIN LXAIL FUNCTIONS ===
