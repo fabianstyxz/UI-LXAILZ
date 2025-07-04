@@ -173,6 +173,12 @@ else
         end
     }
     
+    _G.ColorSequenceKeypoint = {
+        new = function(time, color)
+            return {Time = time or 0, Value = color or Color3.new(1, 1, 1)}
+        end
+    }
+    
     _G.NumberSequence = {
         new = function(value)
             return {Value = value or 0}
@@ -334,8 +340,8 @@ local function CreateShadow(parent, transparency)
     shadow.BackgroundTransparency = 1
     shadow.ImageTransparency = transparency or 0.85
     shadow.ZIndex = 0
-    shadow.ScaleType = Enum.ScaleType.Slice
-    shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+    -- shadow.ScaleType = Enum.ScaleType.Slice
+    -- shadow.SliceCenter = Rect.new(10, 10, 118, 118)
     shadow.Parent = parent
     return shadow
 end
@@ -367,7 +373,7 @@ local function CreateAnimatedTitle(parent, text, position)
         letterLabel.TextSize = 32
         letterLabel.TextColor3 = LXAIL.ModernTheme.Text
         letterLabel.Size = UDim2.new(0, 20, 0, 40)
-        letterLabel.Position = position + UDim2.new(0, (i-1) * letterSpacing, 0, 0)
+        letterLabel.Position = UDim2.new(position.X.Scale, position.X.Offset + (i-1) * letterSpacing, position.Y.Scale, position.Y.Offset)
         letterLabel.TextXAlignment = Enum.TextXAlignment.Center
         letterLabel.TextYAlignment = Enum.TextYAlignment.Center
         letterLabel.TextTransparency = 1
@@ -401,23 +407,23 @@ local function CreateGlitchTransition(currentTab, newTab)
     if currentTab and currentTab ~= newTab then
         -- Glitch out current tab
         local glitchTween1 = CreateTween(currentTab, 0.05, {
-            Position = currentTab.Position + UDim2.new(0, 5, 0, 0),
+            Position = UDim2.new(currentTab.Position.X.Scale, currentTab.Position.X.Offset + 5, currentTab.Position.Y.Scale, currentTab.Position.Y.Offset),
             BackgroundTransparency = 0.5,
-            Size = currentTab.Size + UDim2.new(0, 5, 0, 5)
+            Size = UDim2.new(currentTab.Size.X.Scale, currentTab.Size.X.Offset + 5, currentTab.Size.Y.Scale, currentTab.Size.Y.Offset + 5)
         })
         glitchTween1.Completed:Wait()
         
         local glitchTween2 = CreateTween(currentTab, 0.05, {
-            Position = currentTab.Position + UDim2.new(0, -5, 0, 5),
+            Position = UDim2.new(currentTab.Position.X.Scale, currentTab.Position.X.Offset - 5, currentTab.Position.Y.Scale, currentTab.Position.Y.Offset + 5),
             BackgroundTransparency = 0.7,
-            Size = currentTab.Size - UDim2.new(0, 5, 0, 5)
+            Size = UDim2.new(currentTab.Size.X.Scale, currentTab.Size.X.Offset - 5, currentTab.Size.Y.Scale, currentTab.Size.Y.Offset - 5)
         })
         glitchTween2.Completed:Wait()
         
         local glitchTween3 = CreateTween(currentTab, 0.05, {
-            Position = currentTab.Position,
+            Position = UDim2.new(0, 0, 0, 0),
             BackgroundTransparency = 1,
-            Size = currentTab.Size
+            Size = UDim2.new(1, 0, 1, 0)
         })
         glitchTween3.Completed:Wait()
         
@@ -434,23 +440,23 @@ local function CreateGlitchTransition(currentTab, newTab)
     newTab.Position = UDim2.new(0, 0, 0, 0)
     
     local glitchIn1 = CreateTween(newTab, 0.05, {
-        Position = newTab.Position + UDim2.new(0, 5, 0, 0),
+        Position = UDim2.new(0, 5, 0, 0),
         BackgroundTransparency = 0.5,
-        Size = newTab.Size + UDim2.new(0, 5, 0, 5)
+        Size = UDim2.new(1, 5, 1, 5)
     })
     glitchIn1.Completed:Wait()
     
     local glitchIn2 = CreateTween(newTab, 0.05, {
-        Position = newTab.Position + UDim2.new(0, -5, 0, 5),
+        Position = UDim2.new(0, -5, 0, 5),
         BackgroundTransparency = 0.7,
-        Size = newTab.Size - UDim2.new(0, 5, 0, 5)
+        Size = UDim2.new(1, -5, 1, -5)
     })
     glitchIn2.Completed:Wait()
     
     local glitchIn3 = CreateTween(newTab, 0.05, {
-        Position = newTab.Position,
+        Position = UDim2.new(0, 0, 0, 0),
         BackgroundTransparency = 0,
-        Size = newTab.Size
+        Size = UDim2.new(1, 0, 1, 0)
     })
 end
 
