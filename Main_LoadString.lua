@@ -218,6 +218,26 @@ else
             Slice = "Slice",
             Tile = "Tile",
             Fit = "Fit"
+        },
+        SortOrder = {
+            LayoutOrder = "LayoutOrder",
+            Name = "Name"
+        },
+        ScrollingDirection = {
+            X = "X",
+            Y = "Y",
+            XY = "XY"
+        },
+        AutomaticSize = {
+            None = "None",
+            X = "X",
+            Y = "Y",
+            XY = "XY"
+        },
+        HorizontalAlignment = {
+            Left = "Left",
+            Center = "Center",
+            Right = "Right"
         }
     }
     
@@ -923,106 +943,7 @@ function LXAIL:Prompt(options)
     })
 end
 
--- === FLOATING BUTTON ===
-function LXAIL:CreateFloatingButton(options)
-    options = options or {}
-    local icon = options.Icon or "rbxassetid://100710776166961"
-    local callback = options.Callback or function() end
-    
-    -- GUI contenedor del botón flotante
-    local buttonGui = Instance.new("ScreenGui")
-    buttonGui.Name = "LXAILFloatingButton"
-    buttonGui.Parent = playerGui
-    buttonGui.IgnoreGuiInset = true
-    buttonGui.ResetOnSpawn = false
-    
-    -- Botón flotante
-    local draggableButton = Instance.new("ImageButton")
-    draggableButton.Name = "FloatingButton"
-    draggableButton.Image = icon
-    draggableButton.Size = UDim2.new(0, 50, 0, 50)
-    draggableButton.Position = UDim2.new(0, 20, 0, 200)
-    draggableButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    draggableButton.BackgroundTransparency = 0.2
-    draggableButton.BorderSizePixel = 0
-    draggableButton.AnchorPoint = Vector2.new(0, 0)
-    draggableButton.ZIndex = 1000
-    draggableButton.Parent = buttonGui
-    
-    -- Bordes redondeados
-    local buttonCorner = Instance.new("UICorner")
-    buttonCorner.CornerRadius = UDim.new(0, 25)
-    buttonCorner.Parent = draggableButton
-    
-    addSectionShadow(draggableButton)
-    
-    -- Variables de arrastre
-    local draggingButton = false
-    local dragStart, startPos
-    local clickStarted = false
-    local clickStartTime = 0
-    
-    -- Drag functionality
-    draggableButton.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            draggingButton = true
-            dragStart = input.Position
-            startPos = draggableButton.Position
-            clickStarted = true
-            clickStartTime = tick()
-        end
-    end)
-    
-    UserInputService.InputChanged:Connect(function(input)
-        if draggingButton and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-            local delta = input.Position - dragStart
-            draggableButton.Position = UDim2.new(
-                startPos.X.Scale, startPos.X.Offset + delta.X,
-                startPos.Y.Scale, startPos.Y.Offset + delta.Y
-            )
-        end
-    end)
-    
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            if draggingButton then
-                draggingButton = false
-                
-                -- Detectar clic corto (no fue arrastre largo)
-                if clickStarted and tick() - clickStartTime < 0.25 then
-                    -- Animación de clic
-                    tween(draggableButton, TweenInfo.new(0.1), {Size = UDim2.new(0, 45, 0, 45)})
-                    wait(0.1)
-                    tween(draggableButton, TweenInfo.new(0.1), {Size = UDim2.new(0, 50, 0, 50)})
-                    
-                    -- Execute callback
-                    callback()
-                end
-                clickStarted = false
-            end
-        end
-    end)
-    
-    -- Hover effects
-    draggableButton.MouseEnter:Connect(function()
-        tween(draggableButton, TweenInfo.new(0.2), {
-            Size = UDim2.new(0, 55, 0, 55),
-            BackgroundTransparency = 0.1
-        })
-    end)
-    
-    draggableButton.MouseLeave:Connect(function()
-        tween(draggableButton, TweenInfo.new(0.2), {
-            Size = UDim2.new(0, 50, 0, 50),
-            BackgroundTransparency = 0.2
-        })
-    end)
-    
-    return {
-        Button = draggableButton,
-        GUI = buttonGui
-    }
-end
+
 
 -- === MAIN WINDOW CREATION ===
 function LXAIL:CreateWindow(options)
@@ -1167,20 +1088,12 @@ function LXAIL:CreateWindow(options)
     
     local function animateLetters()
         local fadeInInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-        local fadeOutInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
         
+        -- Solo animar una vez al inicio
         spawn(function()
-            while bg.Parent do
-                for _, letter in ipairs(letters) do
-                    TweenService:Create(letter, fadeInInfo, {TextTransparency = 0}):Play()
-                    wait(0.1)
-                end
-                wait(0.6)
-                for _, letter in ipairs(letters) do
-                    TweenService:Create(letter, fadeOutInfo, {TextTransparency = 1}):Play()
-                    wait(0.1)
-                end
-                wait(0.6)
+            for _, letter in ipairs(letters) do
+                tween(letter, fadeInInfo, {TextTransparency = 0})
+                wait(0.1)
             end
         end)
     end
@@ -1200,75 +1113,112 @@ function LXAIL:CreateWindow(options)
     close.AutoButtonColor = false
     close.Parent = bg
     
-    close.MouseEnter:Connect(function()
-        tween(close, TweenInfo.new(0.15), {TextColor3 = Color3.fromRGB(255, 100, 100)})
-    end)
-    close.MouseLeave:Connect(function()
-        tween(close, TweenInfo.new(0.15), {TextColor3 = Color3.fromRGB(230, 230, 230)})
-    end)
+    -- Mouse events (only if available)
+    if close.MouseEnter then
+        close.MouseEnter:Connect(function()
+            tween(close, TweenInfo.new(0.15), {TextColor3 = Color3.fromRGB(255, 100, 100)})
+        end)
+    end
+    if close.MouseLeave then
+        close.MouseLeave:Connect(function()
+            tween(close, TweenInfo.new(0.15), {TextColor3 = Color3.fromRGB(230, 230, 230)})
+        end)
+    end
     
     -- ScreenGui separado para el botón flotante (siempre visible)
     local buttonGui = Instance.new("ScreenGui")
     buttonGui.Name = "ToggleButtonGui"
-    buttonGui.Parent = player:WaitForChild("PlayerGui")
+    buttonGui.Parent = playerGui
     buttonGui.IgnoreGuiInset = true
     buttonGui.ResetOnSpawn = false
 
     local draggableButton = Instance.new("ImageButton")
     draggableButton.Name = "ToggleButton"
     draggableButton.Image = "rbxassetid://100710776166961"
-    draggableButton.Size = UDim2.new(0, 40, 0, 40) -- tamaño más pequeño
+    draggableButton.Size = UDim2.new(0, 40, 0, 40)
     draggableButton.Position = UDim2.new(0, 20, 0, 200)
     draggableButton.BackgroundTransparency = 1
     draggableButton.AnchorPoint = Vector2.new(0, 0)
     draggableButton.ZIndex = 1000
     draggableButton.Parent = buttonGui
 
-    -- Drag para botón
+    -- Variables para drag y click
     local dragging = false
     local dragStart, startPos
-
-    draggableButton.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            dragStart = input.Position
-            startPos = draggableButton.Position
-        end
-    end)
-
-    UserInputService.InputChanged:Connect(function(input)
-        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-            local delta = input.Position - dragStart
-            draggableButton.Position = UDim2.new(
-                startPos.X.Scale, startPos.X.Offset + delta.X,
-                startPos.Y.Scale, startPos.Y.Offset + delta.Y
-            )
-        end
-    end)
-
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = false
-        end
-    end)
-
-    -- Toggle UI con animación clic
+    local dragMoved = false
+    
+    -- Toggle UI state
     local visible = true
 
-    draggableButton.MouseButton1Click:Connect(function()
-        if not dragging then
-            local clickTween = TweenService:Create(draggableButton, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(0, 30, 0, 30)})
-            clickTween:Play()
-            clickTween.Completed:Wait()
-            local releaseTween = TweenService:Create(draggableButton, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Size = UDim2.new(0, 40, 0, 40)})
-            releaseTween:Play()
+    -- Drag functionality (only if available)
+    if draggableButton.InputBegan then
+        draggableButton.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                dragging = true
+                dragMoved = false
+                dragStart = input.Position
+                startPos = draggableButton.Position
+            end
+        end)
+    end
 
-            visible = not visible
-            mainGui.Enabled = visible
-        end
-    end)
+    -- Input handling (only if UserInputService is available)
+    if UserInputService and UserInputService.InputChanged then
+        UserInputService.InputChanged:Connect(function(input)
+            if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                local delta = input.Position - dragStart
+                local distance = math.sqrt(delta.X^2 + delta.Y^2)
+                
+                if distance > 5 then
+                    dragMoved = true
+                    draggableButton.Position = UDim2.new(
+                        startPos.X.Scale, startPos.X.Offset + delta.X,
+                        startPos.Y.Scale, startPos.Y.Offset + delta.Y
+                    )
+                end
+            end
+        end)
+    end
 
-    -- Botón cerrar
+    if UserInputService and UserInputService.InputEnded then
+        UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                if dragging and not dragMoved then
+                    -- Solo fue un click, no drag - hacer toggle
+                    spawn(function()
+                        -- Animación de click
+                        tween(draggableButton, TweenInfo.new(0.1), {Size = UDim2.new(0, 30, 0, 30)})
+                        wait(0.1)
+                        tween(draggableButton, TweenInfo.new(0.1), {Size = UDim2.new(0, 40, 0, 40)})
+                        
+                        -- Toggle UI
+                        visible = not visible
+                        mainGui.Enabled = visible
+                    end)
+                end
+                dragging = false
+                dragMoved = false
+            end
+        end)
+    end
+    
+    -- Fallback: Use MouseButton1Click if InputBegan is not available
+    if not draggableButton.InputBegan and draggableButton.MouseButton1Click then
+        draggableButton.MouseButton1Click:Connect(function()
+            spawn(function()
+                -- Animación de click
+                tween(draggableButton, TweenInfo.new(0.1), {Size = UDim2.new(0, 30, 0, 30)})
+                wait(0.1)
+                tween(draggableButton, TweenInfo.new(0.1), {Size = UDim2.new(0, 40, 0, 40)})
+                
+                -- Toggle UI
+                visible = not visible
+                mainGui.Enabled = visible
+            end)
+        end)
+    end
+
+    -- Botón cerrar actualizado
     close.MouseButton1Click:Connect(function()
         mainGui.Enabled = false
         visible = false
@@ -1350,26 +1300,34 @@ function LXAIL:CreateWindow(options)
     local draggingBg = false
     local dragInputBg, dragStartBg, startPosBg
     
-    dragBar.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            draggingBg = true
-            dragStartBg = input.Position
-            startPosBg = bg.Position
-        end
-    end)
+    -- Drag functionality for window (only if available)
+    if dragBar.InputBegan then
+        dragBar.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                draggingBg = true
+                dragStartBg = input.Position
+                startPosBg = bg.Position
+            end
+        end)
+    end
     
-    UserInputService.InputChanged:Connect(function(input)
-        if draggingBg and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-            local delta = input.Position - dragStartBg
-            bg.Position = UDim2.new(startPosBg.X.Scale, startPosBg.X.Offset + delta.X, startPosBg.Y.Scale, startPosBg.Y.Offset + delta.Y)
-        end
-    end)
+    -- Window drag handlers (only if UserInputService is available)
+    if UserInputService and UserInputService.InputChanged then
+        UserInputService.InputChanged:Connect(function(input)
+            if draggingBg and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                local delta = input.Position - dragStartBg
+                bg.Position = UDim2.new(startPosBg.X.Scale, startPosBg.X.Offset + delta.X, startPosBg.Y.Scale, startPosBg.Y.Offset + delta.Y)
+            end
+        end)
+    end
     
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            draggingBg = false
-        end
-    end)
+    if UserInputService and UserInputService.InputEnded then
+        UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                draggingBg = false
+            end
+        end)
+    end
     
     -- Window object
     local window = {
@@ -1389,8 +1347,9 @@ function LXAIL:CreateWindow(options)
     
     -- Toggle function
     function window:Toggle()
-        self.Visible = not self.Visible
-        self.GUI.Enabled = self.Visible
+        visible = not visible
+        self.GUI.Enabled = visible
+        self.Visible = visible
     end
     
     -- CreateTab function
