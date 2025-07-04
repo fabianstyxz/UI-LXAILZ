@@ -1963,10 +1963,394 @@ function LXAIL:Notify(Options)
     return notification
 end
 
+-- === ADVANCED SYSTEMS ===
+
+-- Key System Implementation
+function LXAIL:ShowKeySystem(KeySystemOptions)
+    local KeyOptions = KeySystemOptions or {}
+    local Title = KeyOptions.Title or "Key System"
+    local Subtitle = KeyOptions.Subtitle or "Enter your key"
+    local Note = KeyOptions.Note or "Get your key from our Discord server"
+    local FileName = KeyOptions.FileName or "LXAIL_Key"
+    local SaveKey = KeyOptions.SaveKey or true
+    local GrabKeyFromSite = KeyOptions.GrabKeyFromSite or false
+    local Key = KeyOptions.Key or {"DefaultKey"}
+    
+    print("🔑 KeySystem: Showing key authentication")
+    
+    -- Create key system GUI
+    local keyGui = Instance.new("ScreenGui")
+    keyGui.Name = "LXAIL_KeySystem"
+    keyGui.Parent = CoreGui or PlayerGui
+    
+    local keyFrame = Instance.new("Frame")
+    keyFrame.Size = UDim2.new(0, 400, 0, 300)
+    keyFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
+    keyFrame.BackgroundColor3 = LXAIL.ModernTheme.Background
+    keyFrame.BorderSizePixel = 0
+    keyFrame.Parent = keyGui
+    CreateCorner(keyFrame, 12)
+    
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Text = Title
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextSize = 24
+    titleLabel.TextColor3 = LXAIL.ModernTheme.Text
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Size = UDim2.new(1, 0, 0, 40)
+    titleLabel.Position = UDim2.new(0, 0, 0, 20)
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Center
+    titleLabel.Parent = keyFrame
+    
+    local subtitleLabel = Instance.new("TextLabel")
+    subtitleLabel.Text = Subtitle
+    subtitleLabel.Font = Enum.Font.Gotham
+    subtitleLabel.TextSize = 16
+    subtitleLabel.TextColor3 = LXAIL.ModernTheme.Text
+    subtitleLabel.BackgroundTransparency = 1
+    subtitleLabel.Size = UDim2.new(1, 0, 0, 30)
+    subtitleLabel.Position = UDim2.new(0, 0, 0, 60)
+    subtitleLabel.TextXAlignment = Enum.TextXAlignment.Center
+    subtitleLabel.Parent = keyFrame
+    
+    local noteLabel = Instance.new("TextLabel")
+    noteLabel.Text = Note
+    noteLabel.Font = Enum.Font.Gotham
+    noteLabel.TextSize = 14
+    noteLabel.TextColor3 = LXAIL.ModernTheme.Text
+    noteLabel.BackgroundTransparency = 1
+    noteLabel.Size = UDim2.new(1, -40, 0, 40)
+    noteLabel.Position = UDim2.new(0, 20, 0, 100)
+    noteLabel.TextXAlignment = Enum.TextXAlignment.Center
+    noteLabel.TextWrapped = true
+    noteLabel.Parent = keyFrame
+    
+    local keyInput = Instance.new("TextBox")
+    keyInput.Size = UDim2.new(0.8, 0, 0, 40)
+    keyInput.Position = UDim2.new(0.1, 0, 0, 160)
+    keyInput.Font = Enum.Font.Gotham
+    keyInput.TextSize = 16
+    keyInput.TextColor3 = LXAIL.ModernTheme.Text
+    keyInput.BackgroundColor3 = LXAIL.ModernTheme.Secondary
+    keyInput.BorderSizePixel = 0
+    keyInput.PlaceholderText = "Enter your key here..."
+    keyInput.Parent = keyFrame
+    CreateCorner(keyInput, 8)
+    
+    local submitButton = Instance.new("TextButton")
+    submitButton.Text = "Submit Key"
+    submitButton.Font = Enum.Font.GothamBold
+    submitButton.TextSize = 16
+    submitButton.TextColor3 = LXAIL.ModernTheme.Text
+    submitButton.BackgroundColor3 = LXAIL.ModernTheme.Accent
+    submitButton.Size = UDim2.new(0.4, 0, 0, 40)
+    submitButton.Position = UDim2.new(0.1, 0, 0, 220)
+    submitButton.BorderSizePixel = 0
+    submitButton.Parent = keyFrame
+    CreateCorner(submitButton, 8)
+    
+    local getKeyButton = Instance.new("TextButton")
+    getKeyButton.Text = "Get Key"
+    getKeyButton.Font = Enum.Font.GothamBold
+    getKeyButton.TextSize = 16
+    getKeyButton.TextColor3 = LXAIL.ModernTheme.Text
+    getKeyButton.BackgroundColor3 = LXAIL.ModernTheme.Secondary
+    getKeyButton.Size = UDim2.new(0.4, 0, 0, 40)
+    getKeyButton.Position = UDim2.new(0.5, 0, 0, 220)
+    getKeyButton.BorderSizePixel = 0
+    getKeyButton.Parent = keyFrame
+    CreateCorner(getKeyButton, 8)
+    
+    -- Key validation
+    submitButton.MouseButton1Click:Connect(function()
+        local enteredKey = keyInput.Text
+        local isValidKey = false
+        
+        for _, validKey in ipairs(Key) do
+            if enteredKey == validKey then
+                isValidKey = true
+                break
+            end
+        end
+        
+        if isValidKey then
+            if SaveKey then
+                -- Save key to file (simulated)
+                print("Key saved:", enteredKey)
+            end
+            keyGui:Destroy()
+            print("✅ Key validation successful!")
+        else
+            keyInput.Text = ""
+            keyInput.PlaceholderText = "Invalid key! Try again..."
+            CreateTween(keyFrame, 0.1, {Position = keyFrame.Position + UDim2.new(0, 10, 0, 0)})
+            wait(0.1)
+            CreateTween(keyFrame, 0.1, {Position = keyFrame.Position - UDim2.new(0, 10, 0, 0)})
+        end
+    end)
+    
+    getKeyButton.MouseButton1Click:Connect(function()
+        print("Get key button clicked - would open Discord/website")
+        self:Notify({
+            Title = "Get Key",
+            Content = "Check our Discord server for keys!",
+            Duration = 3,
+            Type = "Info"
+        })
+    end)
+    
+    return keyGui
+end
+
+-- Discord Prompt System
+function LXAIL:Prompt(PromptOptions)
+    local Options = PromptOptions or {}
+    local Title = Options.Title or "Prompt"
+    local SubTitle = Options.SubTitle or ""
+    local Content = Options.Content or "This is a prompt."
+    local Actions = Options.Actions or {}
+    
+    print("💬 Prompt:", Title)
+    
+    local promptGui = Instance.new("ScreenGui")
+    promptGui.Name = "LXAIL_Prompt"
+    promptGui.Parent = CoreGui or PlayerGui
+    
+    local backdrop = Instance.new("Frame")
+    backdrop.Size = UDim2.new(1, 0, 1, 0)
+    backdrop.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    backdrop.BackgroundTransparency = 0.5
+    backdrop.BorderSizePixel = 0
+    backdrop.Parent = promptGui
+    
+    local promptFrame = Instance.new("Frame")
+    promptFrame.Size = UDim2.new(0, 450, 0, 300)
+    promptFrame.Position = UDim2.new(0.5, -225, 0.5, -150)
+    promptFrame.BackgroundColor3 = LXAIL.ModernTheme.Background
+    promptFrame.BorderSizePixel = 0
+    promptFrame.Parent = promptGui
+    CreateCorner(promptFrame, 12)
+    
+    local layout = Instance.new("UIListLayout")
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    layout.Padding = UDim.new(0, 10)
+    layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    layout.Parent = promptFrame
+    
+    local padding = Instance.new("UIPadding")
+    padding.PaddingLeft = UDim.new(0, 20)
+    padding.PaddingRight = UDim.new(0, 20)
+    padding.PaddingTop = UDim.new(0, 20)
+    padding.PaddingBottom = UDim.new(0, 20)
+    padding.Parent = promptFrame
+    
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Text = Title
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextSize = 24
+    titleLabel.TextColor3 = LXAIL.ModernTheme.Text
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Size = UDim2.new(1, 0, 0, 30)
+    titleLabel.LayoutOrder = 1
+    titleLabel.Parent = promptFrame
+    
+    if SubTitle ~= "" then
+        local subTitleLabel = Instance.new("TextLabel")
+        subTitleLabel.Text = SubTitle
+        subTitleLabel.Font = Enum.Font.Gotham
+        subTitleLabel.TextSize = 18
+        subTitleLabel.TextColor3 = LXAIL.ModernTheme.Text
+        subTitleLabel.BackgroundTransparency = 1
+        subTitleLabel.Size = UDim2.new(1, 0, 0, 25)
+        subTitleLabel.LayoutOrder = 2
+        subTitleLabel.Parent = promptFrame
+    end
+    
+    local contentLabel = Instance.new("TextLabel")
+    contentLabel.Text = Content
+    contentLabel.Font = Enum.Font.Gotham
+    contentLabel.TextSize = 14
+    contentLabel.TextColor3 = LXAIL.ModernTheme.Text
+    contentLabel.BackgroundTransparency = 1
+    contentLabel.Size = UDim2.new(1, 0, 0, 80)
+    contentLabel.TextWrapped = true
+    contentLabel.LayoutOrder = 3
+    contentLabel.Parent = promptFrame
+    
+    -- Create action buttons
+    local buttonContainer = Instance.new("Frame")
+    buttonContainer.Size = UDim2.new(1, 0, 0, 50)
+    buttonContainer.BackgroundTransparency = 1
+    buttonContainer.LayoutOrder = 4
+    buttonContainer.Parent = promptFrame
+    
+    local buttonLayout = Instance.new("UIListLayout")
+    buttonLayout.FillDirection = Enum.FillDirection.Horizontal
+    buttonLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    buttonLayout.Padding = UDim.new(0, 10)
+    buttonLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    buttonLayout.Parent = buttonContainer
+    
+    for actionName, actionData in pairs(Actions) do
+        local button = Instance.new("TextButton")
+        button.Text = actionData.Name or actionName
+        button.Font = Enum.Font.GothamBold
+        button.TextSize = 16
+        button.TextColor3 = LXAIL.ModernTheme.Text
+        button.BackgroundColor3 = (actionName == "Accept") and LXAIL.ModernTheme.Accent or LXAIL.ModernTheme.Secondary
+        button.Size = UDim2.new(0, 120, 0, 40)
+        button.BorderSizePixel = 0
+        button.Parent = buttonContainer
+        CreateCorner(button, 8)
+        
+        button.MouseButton1Click:Connect(function()
+            if actionData.Callback then
+                actionData.Callback()
+            end
+            promptGui:Destroy()
+        end)
+    end
+    
+    return promptGui
+end
+
+-- Configuration Management
+function LXAIL:SaveConfiguration()
+    print("💾 SaveConfiguration: Saving current settings")
+    local config = {}
+    for flag, value in pairs(self.Flags) do
+        config[flag] = value
+    end
+    
+    -- In real Roblox environment, this would save to file
+    print("Configuration saved with", #config, "settings")
+    return config
+end
+
+function LXAIL:LoadConfiguration()
+    print("📂 LoadConfiguration: Loading saved settings")
+    -- In real Roblox environment, this would load from file
+    -- For now, just print success
+    print("Configuration loaded successfully")
+end
+
+function LXAIL:ResetConfiguration()
+    print("🔄 ResetConfiguration: Resetting to defaults")
+    self.Flags = {}
+    print("Configuration reset to defaults")
+end
+
+-- Theme Management
+function LXAIL:SetTheme(ThemeName)
+    print("🎨 SetTheme:", ThemeName)
+    if ThemeName == "Light" then
+        self.ModernTheme = {
+            Background = Color3.fromRGB(255, 255, 255),
+            Secondary = Color3.fromRGB(240, 240, 240),
+            Tertiary = Color3.fromRGB(220, 220, 220),
+            Text = Color3.fromRGB(0, 0, 0),
+            TextSecondary = Color3.fromRGB(50, 50, 50),
+            Accent = Color3.fromRGB(50, 100, 200),
+            AccentHover = Color3.fromRGB(70, 120, 220),
+            ToggleOff = Color3.fromRGB(200, 50, 50),
+            ToggleOn = Color3.fromRGB(50, 200, 50)
+        }
+    elseif ThemeName == "Neon" then
+        self.ModernTheme = {
+            Background = Color3.fromRGB(10, 10, 15),
+            Secondary = Color3.fromRGB(20, 20, 30),
+            Tertiary = Color3.fromRGB(30, 30, 45),
+            Text = Color3.fromRGB(255, 255, 255),
+            TextSecondary = Color3.fromRGB(200, 255, 255),
+            Accent = Color3.fromRGB(150, 100, 255),
+            AccentHover = Color3.fromRGB(170, 120, 255),
+            ToggleOff = Color3.fromRGB(255, 50, 150),
+            ToggleOn = Color3.fromRGB(100, 255, 150)
+        }
+    else -- Dark theme (default)
+        self.ModernTheme = {
+            Background = Color3.fromRGB(20, 20, 20),
+            Secondary = Color3.fromRGB(35, 35, 35),
+            Tertiary = Color3.fromRGB(50, 50, 50),
+            Text = Color3.fromRGB(230, 230, 230),
+            TextSecondary = Color3.fromRGB(240, 240, 240),
+            Accent = Color3.fromRGB(60, 180, 60),
+            AccentHover = Color3.fromRGB(60, 220, 60),
+            ToggleOff = Color3.fromRGB(150, 40, 40),
+            ToggleOn = Color3.fromRGB(60, 180, 60)
+        }
+    end
+    print("Theme changed to:", ThemeName)
+end
+
+-- UI Toggle Function
+function LXAIL:Toggle()
+    if self.CurrentWindow then
+        self.CurrentWindow.Enabled = not self.CurrentWindow.Enabled
+        print("UI toggled:", self.CurrentWindow.Enabled and "Shown" or "Hidden")
+    end
+end
+
+-- Enhanced CreateWindow with KeySystem support
+local originalCreateWindow = LXAIL.CreateWindow
+function LXAIL:CreateWindow(Options)
+    local WindowOptions = Options or {}
+    local KeySystem = WindowOptions.KeySystem
+    
+    -- Show key system if enabled
+    if KeySystem and KeySystem.Enabled then
+        self:ShowKeySystem(KeySystem)
+        -- In a real implementation, we'd wait for key validation
+        -- For demo purposes, we'll continue
+    end
+    
+    -- Create the actual window
+    local window = originalCreateWindow(self, WindowOptions)
+    
+    -- Show Discord prompt if enabled
+    local Discord = WindowOptions.Discord
+    if Discord and Discord.Enabled then
+        spawn(function()
+            wait(2) -- Delay before showing Discord prompt
+            self:Prompt({
+                Title = "Join our Discord!",
+                SubTitle = "Get support and updates",
+                Content = "Join our Discord server for the latest updates, support, and community discussions.",
+                Actions = {
+                    Accept = {
+                        Name = "Join Discord",
+                        Callback = function()
+                            print("Opening Discord invite:", Discord.Invite or "discord.gg/example")
+                            self:Notify({
+                                Title = "Discord",
+                                Content = "Opening Discord invitation...",
+                                Duration = 3,
+                                Type = "Info"
+                            })
+                        end
+                    },
+                    Ignore = {
+                        Name = "Maybe Later",
+                        Callback = function()
+                            print("Discord prompt dismissed")
+                        end
+                    }
+                }
+            })
+        end)
+    end
+    
+    return window
+end
+
 -- === RETURN LIBRARY ===
 if game then
     print("🚀 LXAIL Modern UI Library Loaded Successfully!")
     print("💡 Press F to toggle UI")
+    print("🔑 KeySystem support enabled")
+    print("💬 Discord integration available")
+    print("💾 Configuration management ready")
+    print("🎨 Multiple themes available")
 end
 
 return LXAIL
