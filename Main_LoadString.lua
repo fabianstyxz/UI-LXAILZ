@@ -108,8 +108,21 @@ else
                 MouseButton1Click = {Connect = function(self, func) print("MouseButton1Click connected") end},
                 Changed = {Connect = function(self, func) print("Changed event connected") end},
                 Ended = {Connect = function(self, func) print("Sound Ended event connected") end},
-                Focused = {Connect = function(self, func) print("TextBox Focused event connected") end},
-                FocusLost = {Connect = function(self, func) print("TextBox FocusLost event connected") end},
+                Focused = {Connect = function(self, func) 
+                    print("TextBox Focused event connected")
+                    self._focusedCallback = func
+                end},
+                FocusLost = {Connect = function(self, func) 
+                    print("TextBox FocusLost event connected")
+                    self._focusLostCallback = func
+                end},
+                IsFocused = function(self) return self._isFocused or false end,
+                ReleaseFocus = function(self) 
+                    self._isFocused = false
+                    if self._focusLostCallback then
+                        self._focusLostCallback()
+                    end
+                end,
                 Play = function(self) print("Playing sound:", self.SoundId) end,
                 Stop = function(self) print("Stopping sound:", self.SoundId) end,
                 Destroy = function(self) print("Destroying", self.ClassName) end
@@ -1957,7 +1970,12 @@ function LXAIL:CreateWindow(options)
             
             -- Handle text input to update slider
             box.FocusLost:Connect(function()
-                local val = tonumber(box.Text:gsub(suffix, ""))
+                local text = box.Text
+                -- Remove suffix if present
+                if suffix ~= "" and text:sub(-#suffix) == suffix then
+                    text = text:sub(1, -#suffix-1)
+                end
+                local val = tonumber(text)
                 if val then
                     setSlider(val)
                 else
@@ -1975,7 +1993,12 @@ function LXAIL:CreateWindow(options)
                 if gameProcessed then return end
                 if input.KeyCode == Enum.KeyCode.Return or input.KeyCode == Enum.KeyCode.KeypadEnter then
                     if box:IsFocused() then
-                        local val = tonumber(box.Text:gsub(suffix, ""))
+                        local text = box.Text
+                        -- Remove suffix if present
+                        if suffix ~= "" and text:sub(-#suffix) == suffix then
+                            text = text:sub(1, -#suffix-1)
+                        end
+                        local val = tonumber(text)
                         if val then
                             setSlider(val)
                             box:ReleaseFocus()
