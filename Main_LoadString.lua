@@ -486,6 +486,12 @@ function Tab:CreateInput(Options)
     end
     
     table.insert(self.Components, InputData)
+    
+    -- Update UI if this tab is currently selected
+    if self.Window and self.Window.CurrentTab == self and self.Window.ContentScroll then
+        self.Window:CreateComponentUI(InputData)
+    end
+    
     return InputData
 end
 
@@ -524,6 +530,12 @@ function Tab:CreateDropdown(Options)
     end
     
     table.insert(self.Components, DropdownData)
+    
+    -- Update UI if this tab is currently selected
+    if self.Window and self.Window.CurrentTab == self and self.Window.ContentScroll then
+        self.Window:CreateComponentUI(DropdownData)
+    end
+    
     return DropdownData
 end
 
@@ -558,6 +570,12 @@ function Tab:CreateColorPicker(Options)
     end
     
     table.insert(self.Components, ColorData)
+    
+    -- Update UI if this tab is currently selected
+    if self.Window and self.Window.CurrentTab == self and self.Window.ContentScroll then
+        self.Window:CreateComponentUI(ColorData)
+    end
+    
     return ColorData
 end
 
@@ -595,6 +613,12 @@ function Tab:CreateKeybind(Options)
     
     table.insert(self.Components, KeybindData)
     table.insert(LXAIL.KeybindList, KeybindData)
+    
+    -- Update UI if this tab is currently selected
+    if self.Window and self.Window.CurrentTab == self and self.Window.ContentScroll then
+        self.Window:CreateComponentUI(KeybindData)
+    end
+    
     return KeybindData
 end
 
@@ -610,6 +634,12 @@ function Tab:CreateParagraph(Options)
     }
     
     table.insert(self.Components, ParagraphData)
+    
+    -- Update UI if this tab is currently selected
+    if self.Window and self.Window.CurrentTab == self and self.Window.ContentScroll then
+        self.Window:CreateComponentUI(ParagraphData)
+    end
+    
     return ParagraphData
 end
 
@@ -1314,6 +1344,544 @@ function Window:CreateLabelUI(component)
     LabelFrame.Size = UDim2.new(1, -20, 0, math.max(25, textSize.Y + 5))
 end
 
+function Window:CreateSliderUI(component)
+    local SliderFrame = Instance.new("Frame")
+    SliderFrame.Name = "Slider_" .. component.Name
+    SliderFrame.Size = UDim2.new(1, -20, 0, 60)
+    SliderFrame.BackgroundColor3 = LXAIL.CurrentTheme.Secondary
+    SliderFrame.BorderSizePixel = 0
+    SliderFrame.Parent = self.ContentScroll
+    
+    local SliderCorner = Instance.new("UICorner")
+    SliderCorner.CornerRadius = UDim.new(0, 8)
+    SliderCorner.Parent = SliderFrame
+    
+    local SliderLabel = Instance.new("TextLabel")
+    SliderLabel.Name = "Label"
+    SliderLabel.Size = UDim2.new(0.7, 0, 0, 20)
+    SliderLabel.Position = UDim2.new(0, 15, 0, 10)
+    SliderLabel.BackgroundTransparency = 1
+    SliderLabel.Text = component.Name
+    SliderLabel.TextColor3 = LXAIL.CurrentTheme.Text
+    SliderLabel.TextSize = 14
+    SliderLabel.Font = Enum.Font.Gotham
+    SliderLabel.TextXAlignment = Enum.TextXAlignment.Left
+    SliderLabel.Parent = SliderFrame
+    
+    local ValueLabel = Instance.new("TextLabel")
+    ValueLabel.Name = "Value"
+    ValueLabel.Size = UDim2.new(0.3, -15, 0, 20)
+    ValueLabel.Position = UDim2.new(0.7, 0, 0, 10)
+    ValueLabel.BackgroundTransparency = 1
+    ValueLabel.Text = tostring(component.Value) .. (component.Suffix or "")
+    ValueLabel.TextColor3 = LXAIL.CurrentTheme.TextDark
+    ValueLabel.TextSize = 14
+    ValueLabel.Font = Enum.Font.Gotham
+    ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
+    ValueLabel.Parent = SliderFrame
+    
+    local SliderTrack = Instance.new("Frame")
+    SliderTrack.Name = "Track"
+    SliderTrack.Size = UDim2.new(1, -30, 0, 4)
+    SliderTrack.Position = UDim2.new(0, 15, 0, 40)
+    SliderTrack.BackgroundColor3 = LXAIL.CurrentTheme.Tertiary
+    SliderTrack.BorderSizePixel = 0
+    SliderTrack.Parent = SliderFrame
+    
+    local TrackCorner = Instance.new("UICorner")
+    TrackCorner.CornerRadius = UDim.new(0, 2)
+    TrackCorner.Parent = SliderTrack
+    
+    local SliderFill = Instance.new("Frame")
+    SliderFill.Name = "Fill"
+    local fillPercent = (component.Value - component.Range[1]) / (component.Range[2] - component.Range[1])
+    SliderFill.Size = UDim2.new(fillPercent, 0, 1, 0)
+    SliderFill.Position = UDim2.new(0, 0, 0, 0)
+    SliderFill.BackgroundColor3 = LXAIL.CurrentTheme.Accent
+    SliderFill.BorderSizePixel = 0
+    SliderFill.Parent = SliderTrack
+    
+    local FillCorner = Instance.new("UICorner")
+    FillCorner.CornerRadius = UDim.new(0, 2)
+    FillCorner.Parent = SliderFill
+    
+    local SliderKnob = Instance.new("Frame")
+    SliderKnob.Name = "Knob"
+    SliderKnob.Size = UDim2.new(0, 12, 0, 12)
+    SliderKnob.Position = UDim2.new(fillPercent, -6, 0, -4)
+    SliderKnob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    SliderKnob.BorderSizePixel = 0
+    SliderKnob.Parent = SliderTrack
+    
+    local KnobCorner = Instance.new("UICorner")
+    KnobCorner.CornerRadius = UDim.new(0, 6)
+    KnobCorner.Parent = SliderKnob
+    
+    local dragging = false
+    
+    local function updateSlider(input)
+        local trackSize = SliderTrack.AbsoluteSize.X
+        local trackPos = SliderTrack.AbsolutePosition.X
+        local mousePos = input.Position.X
+        local relativePos = math.clamp(mousePos - trackPos, 0, trackSize)
+        local percent = relativePos / trackSize
+        
+        local newValue = component.Range[1] + (percent * (component.Range[2] - component.Range[1]))
+        newValue = Utils:Round(newValue, component.Increment)
+        newValue = math.clamp(newValue, component.Range[1], component.Range[2])
+        
+        component.Value = newValue
+        
+        local newPercent = (newValue - component.Range[1]) / (component.Range[2] - component.Range[1])
+        SliderFill:TweenSize(UDim2.new(newPercent, 0, 1, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.1, true)
+        SliderKnob:TweenPosition(UDim2.new(newPercent, -6, 0, -4), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.1, true)
+        
+        ValueLabel.Text = tostring(newValue) .. (component.Suffix or "")
+        
+        if component.Flag then
+            LXAIL.Flags[component.Flag] = newValue
+        end
+        component.Callback(newValue)
+    end
+    
+    SliderTrack.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            updateSlider(input)
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            updateSlider(input)
+        end
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+end
+
+function Window:CreateInputUI(component)
+    local InputFrame = Instance.new("Frame")
+    InputFrame.Name = "Input_" .. component.Name
+    InputFrame.Size = UDim2.new(1, -20, 0, 60)
+    InputFrame.BackgroundColor3 = LXAIL.CurrentTheme.Secondary
+    InputFrame.BorderSizePixel = 0
+    InputFrame.Parent = self.ContentScroll
+    
+    local InputCorner = Instance.new("UICorner")
+    InputCorner.CornerRadius = UDim.new(0, 8)
+    InputCorner.Parent = InputFrame
+    
+    local InputLabel = Instance.new("TextLabel")
+    InputLabel.Name = "Label"
+    InputLabel.Size = UDim2.new(1, -30, 0, 20)
+    InputLabel.Position = UDim2.new(0, 15, 0, 8)
+    InputLabel.BackgroundTransparency = 1
+    InputLabel.Text = component.Name
+    InputLabel.TextColor3 = LXAIL.CurrentTheme.Text
+    InputLabel.TextSize = 14
+    InputLabel.Font = Enum.Font.Gotham
+    InputLabel.TextXAlignment = Enum.TextXAlignment.Left
+    InputLabel.Parent = InputFrame
+    
+    local InputBox = Instance.new("TextBox")
+    InputBox.Name = "InputBox"
+    InputBox.Size = UDim2.new(1, -30, 0, 25)
+    InputBox.Position = UDim2.new(0, 15, 0, 28)
+    InputBox.BackgroundColor3 = LXAIL.CurrentTheme.Tertiary
+    InputBox.BorderSizePixel = 0
+    InputBox.Text = component.Value or ""
+    InputBox.PlaceholderText = component.PlaceholderText or "Enter text..."
+    InputBox.TextColor3 = LXAIL.CurrentTheme.Text
+    InputBox.PlaceholderColor3 = LXAIL.CurrentTheme.TextDark
+    InputBox.TextSize = 12
+    InputBox.Font = Enum.Font.Gotham
+    InputBox.TextXAlignment = Enum.TextXAlignment.Left
+    InputBox.ClearTextOnFocus = false
+    InputBox.Parent = InputFrame
+    
+    local BoxCorner = Instance.new("UICorner")
+    BoxCorner.CornerRadius = UDim.new(0, 6)
+    BoxCorner.Parent = InputBox
+    
+    local Padding = Instance.new("UIPadding")
+    Padding.PaddingLeft = UDim.new(0, 8)
+    Padding.PaddingRight = UDim.new(0, 8)
+    Padding.Parent = InputBox
+    
+    InputBox.FocusLost:Connect(function(enterPressed)
+        component.Value = InputBox.Text
+        
+        if component.RemoveTextAfterFocusLost then
+            InputBox.Text = ""
+        end
+        
+        if component.Flag then
+            LXAIL.Flags[component.Flag] = component.Value
+        end
+        component.Callback(component.Value)
+    end)
+end
+
+function Window:CreateDropdownUI(component)
+    local DropdownFrame = Instance.new("Frame")
+    DropdownFrame.Name = "Dropdown_" .. component.Name
+    DropdownFrame.Size = UDim2.new(1, -20, 0, 40)
+    DropdownFrame.BackgroundColor3 = LXAIL.CurrentTheme.Secondary
+    DropdownFrame.BorderSizePixel = 0
+    DropdownFrame.Parent = self.ContentScroll
+    
+    local DropdownCorner = Instance.new("UICorner")
+    DropdownCorner.CornerRadius = UDim.new(0, 8)
+    DropdownCorner.Parent = DropdownFrame
+    
+    local DropdownLabel = Instance.new("TextLabel")
+    DropdownLabel.Name = "Label"
+    DropdownLabel.Size = UDim2.new(0.5, -15, 1, 0)
+    DropdownLabel.Position = UDim2.new(0, 15, 0, 0)
+    DropdownLabel.BackgroundTransparency = 1
+    DropdownLabel.Text = component.Name
+    DropdownLabel.TextColor3 = LXAIL.CurrentTheme.Text
+    DropdownLabel.TextSize = 14
+    DropdownLabel.Font = Enum.Font.Gotham
+    DropdownLabel.TextXAlignment = Enum.TextXAlignment.Left
+    DropdownLabel.Parent = DropdownFrame
+    
+    local DropdownButton = Instance.new("TextButton")
+    DropdownButton.Name = "Button"
+    DropdownButton.Size = UDim2.new(0.5, -25, 0, 25)
+    DropdownButton.Position = UDim2.new(0.5, 5, 0, 7.5)
+    DropdownButton.BackgroundColor3 = LXAIL.CurrentTheme.Tertiary
+    DropdownButton.BorderSizePixel = 0
+    local currentText = component.MultipleOptions and table.concat(component.CurrentOption, ", ") or (component.CurrentOption[1] or "Select...")
+    DropdownButton.Text = currentText
+    DropdownButton.TextColor3 = LXAIL.CurrentTheme.Text
+    DropdownButton.TextSize = 12
+    DropdownButton.Font = Enum.Font.Gotham
+    DropdownButton.TextXAlignment = Enum.TextXAlignment.Center
+    DropdownButton.Parent = DropdownFrame
+    
+    local ButtonCorner = Instance.new("UICorner")
+    ButtonCorner.CornerRadius = UDim.new(0, 6)
+    ButtonCorner.Parent = DropdownButton
+    
+    local Arrow = Instance.new("TextLabel")
+    Arrow.Name = "Arrow"
+    Arrow.Size = UDim2.new(0, 15, 1, 0)
+    Arrow.Position = UDim2.new(1, -20, 0, 0)
+    Arrow.BackgroundTransparency = 1
+    Arrow.Text = "▼"
+    Arrow.TextColor3 = LXAIL.CurrentTheme.TextDark
+    Arrow.TextSize = 10
+    Arrow.Font = Enum.Font.Gotham
+    Arrow.TextXAlignment = Enum.TextXAlignment.Center
+    Arrow.Parent = DropdownButton
+    
+    local isOpen = false
+    
+    DropdownButton.MouseButton1Click:Connect(function()
+        isOpen = not isOpen
+        Arrow.Text = isOpen and "▲" or "▼"
+        
+        if isOpen then
+            -- Create dropdown list
+            local DropdownList = Instance.new("Frame")
+            DropdownList.Name = "DropdownList"
+            DropdownList.Size = UDim2.new(0.5, -25, 0, math.min(#component.Options * 25, 150))
+            DropdownList.Position = UDim2.new(0.5, 5, 1, 5)
+            DropdownList.BackgroundColor3 = LXAIL.CurrentTheme.Background
+            DropdownList.BorderSizePixel = 0
+            DropdownList.ZIndex = 10
+            DropdownList.Parent = DropdownFrame
+            
+            local ListCorner = Instance.new("UICorner")
+            ListCorner.CornerRadius = UDim.new(0, 6)
+            ListCorner.Parent = DropdownList
+            
+            local ListStroke = Instance.new("UIStroke")
+            ListStroke.Color = LXAIL.CurrentTheme.Tertiary
+            ListStroke.Thickness = 1
+            ListStroke.Parent = DropdownList
+            
+            local ScrollFrame = Instance.new("ScrollingFrame")
+            ScrollFrame.Size = UDim2.new(1, 0, 1, 0)
+            ScrollFrame.BackgroundTransparency = 1
+            ScrollFrame.BorderSizePixel = 0
+            ScrollFrame.ScrollBarThickness = 4
+            ScrollFrame.ScrollBarImageColor3 = LXAIL.CurrentTheme.Accent
+            ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, #component.Options * 25)
+            ScrollFrame.Parent = DropdownList
+            
+            local ListLayout = Instance.new("UIListLayout")
+            ListLayout.FillDirection = Enum.FillDirection.Vertical
+            ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+            ListLayout.Parent = ScrollFrame
+            
+            for i, option in pairs(component.Options) do
+                local OptionButton = Instance.new("TextButton")
+                OptionButton.Name = "Option_" .. tostring(i)
+                OptionButton.Size = UDim2.new(1, 0, 0, 25)
+                OptionButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+                OptionButton.BackgroundTransparency = 1
+                OptionButton.BorderSizePixel = 0
+                OptionButton.Text = option
+                OptionButton.TextColor3 = LXAIL.CurrentTheme.Text
+                OptionButton.TextSize = 12
+                OptionButton.Font = Enum.Font.Gotham
+                OptionButton.TextXAlignment = Enum.TextXAlignment.Left
+                OptionButton.LayoutOrder = i
+                OptionButton.Parent = ScrollFrame
+                
+                local OptionPadding = Instance.new("UIPadding")
+                OptionPadding.PaddingLeft = UDim.new(0, 8)
+                OptionPadding.Parent = OptionButton
+                
+                OptionButton.MouseEnter:Connect(function()
+                    OptionButton.BackgroundTransparency = 0.9
+                end)
+                
+                OptionButton.MouseLeave:Connect(function()
+                    OptionButton.BackgroundTransparency = 1
+                end)
+                
+                OptionButton.MouseButton1Click:Connect(function()
+                    if component.MultipleOptions then
+                        local found = false
+                        for j, selected in pairs(component.CurrentOption) do
+                            if selected == option then
+                                table.remove(component.CurrentOption, j)
+                                found = true
+                                break
+                            end
+                        end
+                        if not found then
+                            table.insert(component.CurrentOption, option)
+                        end
+                        DropdownButton.Text = table.concat(component.CurrentOption, ", ")
+                    else
+                        component.CurrentOption = {option}
+                        DropdownButton.Text = option
+                    end
+                    
+                    if component.Flag then
+                        LXAIL.Flags[component.Flag] = component.CurrentOption
+                    end
+                    component.Callback(component.CurrentOption)
+                    
+                    if not component.MultipleOptions then
+                        DropdownList:Destroy()
+                        isOpen = false
+                        Arrow.Text = "▼"
+                    end
+                end)
+            end
+            
+            -- Close when clicking outside
+            spawn(function()
+                wait(0.1)
+                local connection
+                connection = UserInputService.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        DropdownList:Destroy()
+                        isOpen = false
+                        Arrow.Text = "▼"
+                        connection:Disconnect()
+                    end
+                end)
+            end)
+        else
+            -- Close dropdown
+            local existingList = DropdownFrame:FindFirstChild("DropdownList")
+            if existingList then
+                existingList:Destroy()
+            end
+        end
+    end)
+end
+
+function Window:CreateColorPickerUI(component)
+    local ColorFrame = Instance.new("Frame")
+    ColorFrame.Name = "ColorPicker_" .. component.Name
+    ColorFrame.Size = UDim2.new(1, -20, 0, 40)
+    ColorFrame.BackgroundColor3 = LXAIL.CurrentTheme.Secondary
+    ColorFrame.BorderSizePixel = 0
+    ColorFrame.Parent = self.ContentScroll
+    
+    local ColorCorner = Instance.new("UICorner")
+    ColorCorner.CornerRadius = UDim.new(0, 8)
+    ColorCorner.Parent = ColorFrame
+    
+    local ColorLabel = Instance.new("TextLabel")
+    ColorLabel.Name = "Label"
+    ColorLabel.Size = UDim2.new(1, -60, 1, 0)
+    ColorLabel.Position = UDim2.new(0, 15, 0, 0)
+    ColorLabel.BackgroundTransparency = 1
+    ColorLabel.Text = component.Name
+    ColorLabel.TextColor3 = LXAIL.CurrentTheme.Text
+    ColorLabel.TextSize = 14
+    ColorLabel.Font = Enum.Font.Gotham
+    ColorLabel.TextXAlignment = Enum.TextXAlignment.Left
+    ColorLabel.Parent = ColorFrame
+    
+    local ColorPreview = Instance.new("Frame")
+    ColorPreview.Name = "Preview"
+    ColorPreview.Size = UDim2.new(0, 30, 0, 20)
+    ColorPreview.Position = UDim2.new(1, -40, 0, 10)
+    ColorPreview.BackgroundColor3 = component.Color
+    ColorPreview.BorderSizePixel = 0
+    ColorPreview.Parent = ColorFrame
+    
+    local PreviewCorner = Instance.new("UICorner")
+    PreviewCorner.CornerRadius = UDim.new(0, 6)
+    PreviewCorner.Parent = ColorPreview
+    
+    local ColorButton = Instance.new("TextButton")
+    ColorButton.Name = "ColorButton"
+    ColorButton.Size = UDim2.new(0, 30, 0, 20)
+    ColorButton.Position = UDim2.new(1, -40, 0, 10)
+    ColorButton.BackgroundTransparency = 1
+    ColorButton.Text = ""
+    ColorButton.Parent = ColorFrame
+    
+    ColorButton.MouseButton1Click:Connect(function()
+        -- Simple color picker - cycle through preset colors
+        local colors = {
+            Color3.fromRGB(255, 100, 100),
+            Color3.fromRGB(100, 255, 100),
+            Color3.fromRGB(100, 100, 255),
+            Color3.fromRGB(255, 255, 100),
+            Color3.fromRGB(255, 100, 255),
+            Color3.fromRGB(100, 255, 255),
+            Color3.fromRGB(255, 255, 255),
+            Color3.fromRGB(150, 150, 150),
+            Color3.fromRGB(50, 50, 50)
+        }
+        
+        local currentIndex = 1
+        for i, color in pairs(colors) do
+            if component.Color == color then
+                currentIndex = i
+                break
+            end
+        end
+        
+        currentIndex = currentIndex % #colors + 1
+        component.Color = colors[currentIndex]
+        ColorPreview.BackgroundColor3 = component.Color
+        
+        if component.Flag then
+            LXAIL.Flags[component.Flag] = component.Color
+        end
+        component.Callback(component.Color)
+    end)
+end
+
+function Window:CreateKeybindUI(component)
+    local KeybindFrame = Instance.new("Frame")
+    KeybindFrame.Name = "Keybind_" .. component.Name
+    KeybindFrame.Size = UDim2.new(1, -20, 0, 40)
+    KeybindFrame.BackgroundColor3 = LXAIL.CurrentTheme.Secondary
+    KeybindFrame.BorderSizePixel = 0
+    KeybindFrame.Parent = self.ContentScroll
+    
+    local KeybindCorner = Instance.new("UICorner")
+    KeybindCorner.CornerRadius = UDim.new(0, 8)
+    KeybindCorner.Parent = KeybindFrame
+    
+    local KeybindLabel = Instance.new("TextLabel")
+    KeybindLabel.Name = "Label"
+    KeybindLabel.Size = UDim2.new(1, -80, 1, 0)
+    KeybindLabel.Position = UDim2.new(0, 15, 0, 0)
+    KeybindLabel.BackgroundTransparency = 1
+    KeybindLabel.Text = component.Name .. (component.HoldToInteract and " (Hold)" or "")
+    KeybindLabel.TextColor3 = LXAIL.CurrentTheme.Text
+    KeybindLabel.TextSize = 14
+    KeybindLabel.Font = Enum.Font.Gotham
+    KeybindLabel.TextXAlignment = Enum.TextXAlignment.Left
+    KeybindLabel.Parent = KeybindFrame
+    
+    local KeybindButton = Instance.new("TextButton")
+    KeybindButton.Name = "Button"
+    KeybindButton.Size = UDim2.new(0, 60, 0, 25)
+    KeybindButton.Position = UDim2.new(1, -70, 0, 7.5)
+    KeybindButton.BackgroundColor3 = LXAIL.CurrentTheme.Tertiary
+    KeybindButton.BorderSizePixel = 0
+    KeybindButton.Text = component.CurrentKeybind
+    KeybindButton.TextColor3 = LXAIL.CurrentTheme.Text
+    KeybindButton.TextSize = 12
+    KeybindButton.Font = Enum.Font.Gotham
+    KeybindButton.TextXAlignment = Enum.TextXAlignment.Center
+    KeybindButton.Parent = KeybindFrame
+    
+    local ButtonCorner = Instance.new("UICorner")
+    ButtonCorner.CornerRadius = UDim.new(0, 6)
+    ButtonCorner.Parent = KeybindButton
+    
+    local waitingForKey = false
+    
+    KeybindButton.MouseButton1Click:Connect(function()
+        if waitingForKey then return end
+        
+        waitingForKey = true
+        KeybindButton.Text = "..."
+        KeybindButton.BackgroundColor3 = LXAIL.CurrentTheme.Accent
+        
+        local connection
+        connection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
+            if gameProcessed then return end
+            
+            local newKey = input.KeyCode.Name
+            if newKey ~= "Unknown" then
+                component.CurrentKeybind = newKey
+                KeybindButton.Text = newKey
+                KeybindButton.BackgroundColor3 = LXAIL.CurrentTheme.Tertiary
+                
+                if component.Flag then
+                    LXAIL.Flags[component.Flag] = newKey
+                end
+                component.Callback(newKey)
+                
+                waitingForKey = false
+                connection:Disconnect()
+            end
+        end)
+        
+        -- Timeout after 5 seconds
+        spawn(function()
+            wait(5)
+            if waitingForKey then
+                KeybindButton.Text = component.CurrentKeybind
+                KeybindButton.BackgroundColor3 = LXAIL.CurrentTheme.Tertiary
+                waitingForKey = false
+                connection:Disconnect()
+            end
+        end)
+    end)
+end
+
+function Window:CreateParagraphUI(component)
+    local ParagraphFrame = Instance.new("TextLabel")
+    ParagraphFrame.Name = "Paragraph_" .. component.Title
+    ParagraphFrame.Size = UDim2.new(1, -20, 0, 50)
+    ParagraphFrame.BackgroundTransparency = 1
+    ParagraphFrame.Text = component.Title .. "\n" .. component.Content
+    ParagraphFrame.TextColor3 = LXAIL.CurrentTheme.TextDark
+    ParagraphFrame.TextSize = 12
+    ParagraphFrame.Font = Enum.Font.Gotham
+    ParagraphFrame.TextXAlignment = Enum.TextXAlignment.Left
+    ParagraphFrame.TextYAlignment = Enum.TextYAlignment.Top
+    ParagraphFrame.TextWrapped = true
+    ParagraphFrame.Parent = self.ContentScroll
+    
+    -- Auto-resize based on text
+    local textSize = Utils:GetTextSize(ParagraphFrame.Text, 12, Enum.Font.Gotham, Vector2.new(ParagraphFrame.AbsoluteSize.X, math.huge))
+    ParagraphFrame.Size = UDim2.new(1, -20, 0, math.max(50, textSize.Y + 10))
+end
+
 function Window:CreateDividerUI(component)
     local DividerFrame = Instance.new("Frame")
     DividerFrame.Name = "Divider"
@@ -1349,15 +1917,137 @@ function LXAIL:CreateFloatingButton(Options)
     local Icon = FloatingOptions.Icon
     local Callback = FloatingOptions.Callback or function() end
     
-    -- Create floating button for mobile support
-    LXAIL:Notify({
-        Title = "Floating Button",
-        Content = "Floating button created for mobile support",
-        Duration = 2,
-        Type = "Info"
-    })
+    -- Create floating button GUI
+    local FloatingGui = Instance.new("ScreenGui")
+    FloatingGui.Name = "LXAIL_FloatingButton"
+    FloatingGui.Parent = CoreGui
+    FloatingGui.ResetOnSpawn = false
+    
+    -- Floating button
+    local FloatingButton = Instance.new("TextButton")
+    FloatingButton.Name = "FloatingButton"
+    FloatingButton.Size = UDim2.new(0, 60, 0, 60)
+    FloatingButton.Position = UDim2.new(1, -80, 0.5, -30)
+    FloatingButton.BackgroundColor3 = self.CurrentTheme.Accent
+    FloatingButton.BorderSizePixel = 0
+    FloatingButton.Text = ""
+    FloatingButton.Active = true
+    FloatingButton.Draggable = true
+    FloatingButton.Parent = FloatingGui
+    
+    local FloatingCorner = Instance.new("UICorner")
+    FloatingCorner.CornerRadius = UDim.new(0, 30)
+    FloatingCorner.Parent = FloatingButton
+    
+    -- Icon or text
+    if Icon then
+        local IconImage = Instance.new("ImageLabel")
+        IconImage.Name = "Icon"
+        IconImage.Size = UDim2.new(0, 30, 0, 30)
+        IconImage.Position = UDim2.new(0, 15, 0, 15)
+        IconImage.BackgroundTransparency = 1
+        IconImage.Image = Icon
+        IconImage.Parent = FloatingButton
+    else
+        local IconText = Instance.new("TextLabel")
+        IconText.Name = "IconText"
+        IconText.Size = UDim2.new(1, 0, 1, 0)
+        IconText.Position = UDim2.new(0, 0, 0, 0)
+        IconText.BackgroundTransparency = 1
+        IconText.Text = "⚡"
+        IconText.TextColor3 = Color3.fromRGB(255, 255, 255)
+        IconText.TextSize = 24
+        IconText.Font = Enum.Font.GothamBold
+        IconText.TextXAlignment = Enum.TextXAlignment.Center
+        IconText.Parent = FloatingButton
+    end
+    
+    -- Add shadow effect
+    local Shadow = Instance.new("Frame")
+    Shadow.Name = "Shadow"
+    Shadow.Size = UDim2.new(1, 4, 1, 4)
+    Shadow.Position = UDim2.new(0, -2, 0, 2)
+    Shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    Shadow.BackgroundTransparency = 0.8
+    Shadow.BorderSizePixel = 0
+    Shadow.ZIndex = -1
+    Shadow.Parent = FloatingButton
+    
+    local ShadowCorner = Instance.new("UICorner")
+    ShadowCorner.CornerRadius = UDim.new(0, 30)
+    ShadowCorner.Parent = Shadow
+    
+    -- Hover effects
+    FloatingButton.MouseEnter:Connect(function()
+        FloatingButton:TweenSize(UDim2.new(0, 65, 0, 65), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.2, true)
+    end)
+    
+    FloatingButton.MouseLeave:Connect(function()
+        FloatingButton:TweenSize(UDim2.new(0, 60, 0, 60), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.2, true)
+    end)
+    
+    -- Click handler
+    FloatingButton.MouseButton1Click:Connect(function()
+        -- Ripple effect
+        local Ripple = Instance.new("Frame")
+        Ripple.Name = "Ripple"
+        Ripple.Size = UDim2.new(0, 0, 0, 0)
+        Ripple.Position = UDim2.new(0.5, 0, 0.5, 0)
+        Ripple.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        Ripple.BackgroundTransparency = 0.5
+        Ripple.BorderSizePixel = 0
+        Ripple.Parent = FloatingButton
+        
+        local RippleCorner = Instance.new("UICorner")
+        RippleCorner.CornerRadius = UDim.new(0, 30)
+        RippleCorner.Parent = Ripple
+        
+        -- Animate ripple
+        Ripple:TweenSizeAndPosition(
+            UDim2.new(1.5, 0, 1.5, 0),
+            UDim2.new(-0.25, 0, -0.25, 0),
+            Enum.EasingDirection.Out,
+            Enum.EasingStyle.Quart,
+            0.3,
+            true
+        )
+        
+        spawn(function()
+            wait(0.1)
+            Ripple:TweenSize(UDim2.new(0, 0, 0, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.2, true)
+            wait(0.2)
+            Ripple:Destroy()
+        end)
+        
+        Callback()
+    end)
+    
+    -- Edge snapping for mobile
+    local function snapToEdge()
+        local screenSize = workspace.CurrentCamera.ViewportSize
+        local buttonPos = FloatingButton.AbsolutePosition
+        local buttonSize = FloatingButton.AbsoluteSize
+        
+        local leftDist = buttonPos.X
+        local rightDist = screenSize.X - (buttonPos.X + buttonSize.X)
+        
+        if leftDist < rightDist then
+            -- Snap to left
+            FloatingButton:TweenPosition(UDim2.new(0, 20, 0, buttonPos.Y), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.3, true)
+        else
+            -- Snap to right
+            FloatingButton:TweenPosition(UDim2.new(1, -80, 0, buttonPos.Y), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.3, true)
+        end
+    end
+    
+    -- Detect mobile and enable edge snapping
+    if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled then
+        FloatingButton.DragStopped:Connect(snapToEdge)
+    end
     
     return {
+        GUI = FloatingGui,
+        Button = FloatingButton,
         Icon = Icon,
         Callback = Callback,
         Type = "FloatingButton"
@@ -1371,21 +2061,148 @@ function LXAIL:Prompt(Options)
     local Content = PromptOptions.Content or "This is a prompt"
     local Actions = PromptOptions.Actions or {}
     
-    -- Create modal prompt
-    LXAIL:Notify({
-        Title = Title,
-        Content = Content,
-        Duration = 5,
-        Type = "Info"
-    })
+    -- Create modal prompt GUI
+    local PromptGui = Instance.new("ScreenGui")
+    PromptGui.Name = "LXAIL_Prompt"
+    PromptGui.Parent = CoreGui
+    PromptGui.ResetOnSpawn = false
     
-    -- Execute accept action if available
-    if Actions.Accept and Actions.Accept.Callback then
-        spawn(function()
-            wait(2)
-            Actions.Accept.Callback()
+    -- Background
+    local Background = Instance.new("Frame")
+    Background.Name = "Background"
+    Background.Size = UDim2.new(1, 0, 1, 0)
+    Background.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    Background.BackgroundTransparency = 0.5
+    Background.BorderSizePixel = 0
+    Background.Parent = PromptGui
+    
+    -- Main prompt frame
+    local PromptFrame = Instance.new("Frame")
+    PromptFrame.Name = "PromptFrame"
+    PromptFrame.Size = UDim2.new(0, 450, 0, 250)
+    PromptFrame.Position = UDim2.new(0.5, -225, 0.5, -125)
+    PromptFrame.BackgroundColor3 = self.CurrentTheme.Background
+    PromptFrame.BorderSizePixel = 0
+    PromptFrame.Parent = Background
+    
+    local PromptCorner = Instance.new("UICorner")
+    PromptCorner.CornerRadius = UDim.new(0, 12)
+    PromptCorner.Parent = PromptFrame
+    
+    -- Title
+    local PromptTitle = Instance.new("TextLabel")
+    PromptTitle.Name = "Title"
+    PromptTitle.Size = UDim2.new(1, -40, 0, 30)
+    PromptTitle.Position = UDim2.new(0, 20, 0, 15)
+    PromptTitle.BackgroundTransparency = 1
+    PromptTitle.Text = Title
+    PromptTitle.TextColor3 = self.CurrentTheme.Text
+    PromptTitle.TextSize = 20
+    PromptTitle.Font = Enum.Font.GothamBold
+    PromptTitle.TextXAlignment = Enum.TextXAlignment.Center
+    PromptTitle.Parent = PromptFrame
+    
+    -- Subtitle
+    if SubTitle ~= "" then
+        local PromptSubtitle = Instance.new("TextLabel")
+        PromptSubtitle.Name = "Subtitle"
+        PromptSubtitle.Size = UDim2.new(1, -40, 0, 20)
+        PromptSubtitle.Position = UDim2.new(0, 20, 0, 50)
+        PromptSubtitle.BackgroundTransparency = 1
+        PromptSubtitle.Text = SubTitle
+        PromptSubtitle.TextColor3 = self.CurrentTheme.TextDark
+        PromptSubtitle.TextSize = 14
+        PromptSubtitle.Font = Enum.Font.Gotham
+        PromptSubtitle.TextXAlignment = Enum.TextXAlignment.Center
+        PromptSubtitle.Parent = PromptFrame
+    end
+    
+    -- Content
+    local PromptContent = Instance.new("TextLabel")
+    PromptContent.Name = "Content"
+    PromptContent.Size = UDim2.new(1, -40, 0, 80)
+    PromptContent.Position = UDim2.new(0, 20, 0, 80)
+    PromptContent.BackgroundTransparency = 1
+    PromptContent.Text = Content
+    PromptContent.TextColor3 = self.CurrentTheme.TextDark
+    PromptContent.TextSize = 12
+    PromptContent.Font = Enum.Font.Gotham
+    PromptContent.TextXAlignment = Enum.TextXAlignment.Center
+    PromptContent.TextWrapped = true
+    PromptContent.Parent = PromptFrame
+    
+    -- Button container
+    local ButtonContainer = Instance.new("Frame")
+    ButtonContainer.Name = "ButtonContainer"
+    ButtonContainer.Size = UDim2.new(1, -40, 0, 40)
+    ButtonContainer.Position = UDim2.new(0, 20, 1, -55)
+    ButtonContainer.BackgroundTransparency = 1
+    ButtonContainer.Parent = PromptFrame
+    
+    local ButtonLayout = Instance.new("UIListLayout")
+    ButtonLayout.FillDirection = Enum.FillDirection.Horizontal
+    ButtonLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    ButtonLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    ButtonLayout.Padding = UDim.new(0, 10)
+    ButtonLayout.Parent = ButtonContainer
+    
+    -- Accept button
+    if Actions.Accept then
+        local AcceptButton = Instance.new("TextButton")
+        AcceptButton.Name = "AcceptButton"
+        AcceptButton.Size = UDim2.new(0, 120, 0, 35)
+        AcceptButton.BackgroundColor3 = self.CurrentTheme.Accent
+        AcceptButton.BorderSizePixel = 0
+        AcceptButton.Text = Actions.Accept.Name or "Accept"
+        AcceptButton.TextColor3 = self.CurrentTheme.Text
+        AcceptButton.TextSize = 14
+        AcceptButton.Font = Enum.Font.GothamBold
+        AcceptButton.LayoutOrder = 1
+        AcceptButton.Parent = ButtonContainer
+        
+        local AcceptCorner = Instance.new("UICorner")
+        AcceptCorner.CornerRadius = UDim.new(0, 8)
+        AcceptCorner.Parent = AcceptButton
+        
+        AcceptButton.MouseButton1Click:Connect(function()
+            if Actions.Accept.Callback then
+                Actions.Accept.Callback()
+            end
+            PromptGui:Destroy()
         end)
     end
+    
+    -- Ignore/Cancel button
+    if Actions.Ignore then
+        local IgnoreButton = Instance.new("TextButton")
+        IgnoreButton.Name = "IgnoreButton"
+        IgnoreButton.Size = UDim2.new(0, 120, 0, 35)
+        IgnoreButton.BackgroundColor3 = self.CurrentTheme.Secondary
+        IgnoreButton.BorderSizePixel = 0
+        IgnoreButton.Text = Actions.Ignore.Name or "Cancel"
+        IgnoreButton.TextColor3 = self.CurrentTheme.Text
+        IgnoreButton.TextSize = 14
+        IgnoreButton.Font = Enum.Font.Gotham
+        IgnoreButton.LayoutOrder = 2
+        IgnoreButton.Parent = ButtonContainer
+        
+        local IgnoreCorner = Instance.new("UICorner")
+        IgnoreCorner.CornerRadius = UDim.new(0, 8)
+        IgnoreCorner.Parent = IgnoreButton
+        
+        IgnoreButton.MouseButton1Click:Connect(function()
+            if Actions.Ignore.Callback then
+                Actions.Ignore.Callback()
+            end
+            PromptGui:Destroy()
+        end)
+    end
+    
+    -- Slide in animation
+    PromptFrame.Position = UDim2.new(0.5, -225, 1, 125)
+    PromptFrame:TweenPosition(UDim2.new(0.5, -225, 0.5, -125), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.5, true)
+    
+    return PromptGui
 end
 
 function LXAIL:SaveConfiguration()
