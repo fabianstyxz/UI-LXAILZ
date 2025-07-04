@@ -2,8 +2,9 @@
     Button component for the Modern UI Library
 --]]
 
-local UserInputService = game:GetService("UserInputService")
-local Utils = loadstring(game:HttpGet("Modules/Utils.lua"))()
+-- Mock services for local environment compatibility
+local UserInputService = {}
+local Utils = require("Modules.Utils")
 
 local Button = {}
 Button.__index = Button

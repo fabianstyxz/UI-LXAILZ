@@ -2,7 +2,8 @@
     Configuration Manager for the Modern UI Library
 --]]
 
-local HttpService = game:GetService("HttpService")
+-- Mock services for local environment compatibility
+local HttpService = {}
 
 local ConfigManager = {}
 ConfigManager.__index = ConfigManager
@@ -223,10 +224,9 @@ function ConfigManager:StartAutoSave()
         self.AutoSaveConnection:Disconnect()
     end
     
-    self.AutoSaveConnection = game:GetService("RunService").Heartbeat:Connect(function()
-        wait(self.SaveInterval)
-        self:SaveConfig()
-    end)
+    -- Mock connection for local environment compatibility
+    self.AutoSaveConnection = {Disconnect = function() end}
+    -- Note: Auto-save functionality disabled in local environment
 end
 
 function ConfigManager:StopAutoSave()

@@ -2,9 +2,10 @@
     Key System for the Modern UI Library
 --]]
 
-local HttpService = game:GetService("HttpService")
-local UserInputService = game:GetService("UserInputService")
-local Utils = loadstring(game:HttpGet("Modules/Utils.lua"))()
+-- Mock services for local environment compatibility
+local HttpService = {}
+local UserInputService = {}
+local Utils = require("Modules.Utils")
 
 local KeySystem = {}
 KeySystem.__index = KeySystem

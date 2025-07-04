@@ -2,8 +2,9 @@
     Notification system for the Modern UI Library
 --]]
 
-local TweenService = game:GetService("TweenService")
-local Utils = loadstring(game:HttpGet("Modules/Utils.lua"))()
+-- Mock services for local environment compatibility
+local TweenService = {}
+local Utils = require("Modules.Utils")
 
 local Notification = {}
 Notification.__index = Notification

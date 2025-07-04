@@ -2,9 +2,10 @@
     Loading Screen for the Modern UI Library
 --]]
 
-local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
-local Utils = loadstring(game:HttpGet("Modules/Utils.lua"))()
+-- Mock services for local environment compatibility
+local TweenService = {}
+local RunService = {}
+local Utils = require("Modules.Utils")
 
 local LoadingScreen = {}
 LoadingScreen.__index = LoadingScreen

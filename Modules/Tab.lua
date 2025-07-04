@@ -2,19 +2,19 @@
     Tab component for the Modern UI Library
 --]]
 
-local Utils = loadstring(game:HttpGet("Modules/Utils.lua"))()
+local Utils = require("Modules.Utils")
 
--- Load components
-local Toggle = loadstring(game:HttpGet("Modules/Components/Toggle.lua"))()
-local Slider = loadstring(game:HttpGet("Modules/Components/Slider.lua"))()
-local Button = loadstring(game:HttpGet("Modules/Components/Button.lua"))()
-local Input = loadstring(game:HttpGet("Modules/Components/Input.lua"))()
-local Dropdown = loadstring(game:HttpGet("Modules/Components/Dropdown.lua"))()
-local ColorPicker = loadstring(game:HttpGet("Modules/Components/ColorPicker.lua"))()
-local Keybind = loadstring(game:HttpGet("Modules/Components/Keybind.lua"))()
-local Paragraph = loadstring(game:HttpGet("Modules/Components/Paragraph.lua"))()
-local Label = loadstring(game:HttpGet("Modules/Components/Label.lua"))()
-local Divider = loadstring(game:HttpGet("Modules/Components/Divider.lua"))()
+-- Load components with proper require statements for local environment
+local Toggle = require("Modules.Components.Toggle")
+local Slider = require("Modules.Components.Slider")
+local Button = require("Modules.Components.Button")
+local Input = require("Modules.Components.Input")
+local Dropdown = require("Modules.Components.Dropdown")
+local ColorPicker = require("Modules.Components.ColorPicker")
+local Keybind = require("Modules.Components.Keybind")
+local Paragraph = require("Modules.Components.Paragraph")
+local Label = require("Modules.Components.Label")
+local Divider = require("Modules.Components.Divider")
 
 local Tab = {}
 Tab.__index = Tab

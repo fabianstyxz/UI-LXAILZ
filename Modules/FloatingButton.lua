@@ -2,10 +2,11 @@
     Floating Button for the Modern UI Library
 --]]
 
-local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
-local Utils = loadstring(game:HttpGet("Modules/Utils.lua"))()
+-- Mock services for local environment compatibility
+local UserInputService = {}
+local TweenService = {}
+local RunService = {}
+local Utils = require("Modules.Utils")
 
 local FloatingButton = {}
 FloatingButton.__index = FloatingButton

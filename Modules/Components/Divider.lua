@@ -2,7 +2,7 @@
     Divider component for the Modern UI Library
 --]]
 
-local Utils = loadstring(game:HttpGet("Modules/Utils.lua"))()
+local Utils = require("Modules.Utils")
 
 local Divider = {}
 Divider.__index = Divider

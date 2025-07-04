@@ -2,7 +2,7 @@
     Discord Prompt for the Modern UI Library
 --]]
 
-local Utils = loadstring(game:HttpGet("Modules/Utils.lua"))()
+local Utils = require("Modules.Utils")
 
 local DiscordPrompt = {}
 DiscordPrompt.__index = DiscordPrompt

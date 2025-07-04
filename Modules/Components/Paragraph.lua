@@ -2,7 +2,7 @@
     Paragraph component for the Modern UI Library
 --]]
 
-local Utils = loadstring(game:HttpGet("Modules/Utils.lua"))()
+local Utils = require("Modules.Utils")
 
 local Paragraph = {}
 Paragraph.__index = Paragraph

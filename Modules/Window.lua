@@ -2,12 +2,13 @@
     Window component for the Modern UI Library
 --]]
 
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
+-- Mock services for local environment compatibility
+local TweenService = {}
+local UserInputService = {}
+local RunService = {}
 
-local Utils = loadstring(game:HttpGet("Modules/Utils.lua"))()
-local Tab = loadstring(game:HttpGet("Modules/Tab.lua"))()
+local Utils = require("Modules.Utils")
+local Tab = require("Modules.Tab")
 
 local Window = {}
 Window.__index = Window
