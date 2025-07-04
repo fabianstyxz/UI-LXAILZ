@@ -848,21 +848,211 @@ function Window:CreateMainUI()
 end
 
 function Window:InitializeKeySystem()
-    -- Simple key validation
-    local keys = self.KeySystem.Key or {}
-    local validKey = false
+    local keySystem = self.KeySystem
+    if not keySystem then return end
     
-    -- For demo purposes, always validate
-    validKey = true
+    -- Create KeySystem GUI
+    local KeyGui = Instance.new("ScreenGui")
+    KeyGui.Name = "LXAIL_KeySystem"
+    KeyGui.Parent = CoreGui
+    KeyGui.ResetOnSpawn = false
     
-    if not validKey then
-        LXAIL:Notify({
-            Title = "Key Required",
-            Content = "Please enter a valid key to continue",
-            Duration = 5,
-            Type = "Warning"
-        })
+    -- Background
+    local Background = Instance.new("Frame")
+    Background.Name = "Background"
+    Background.Size = UDim2.new(1, 0, 1, 0)
+    Background.Position = UDim2.new(0, 0, 0, 0)
+    Background.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    Background.BackgroundTransparency = 0.5
+    Background.BorderSizePixel = 0
+    Background.Parent = KeyGui
+    
+    -- Main key frame
+    local KeyFrame = Instance.new("Frame")
+    KeyFrame.Name = "KeyFrame"
+    KeyFrame.Size = UDim2.new(0, 400, 0, 300)
+    KeyFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
+    KeyFrame.BackgroundColor3 = LXAIL.CurrentTheme.Background
+    KeyFrame.BorderSizePixel = 0
+    KeyFrame.Parent = Background
+    
+    local KeyCorner = Instance.new("UICorner")
+    KeyCorner.CornerRadius = UDim.new(0, 12)
+    KeyCorner.Parent = KeyFrame
+    
+    -- Title
+    local KeyTitle = Instance.new("TextLabel")
+    KeyTitle.Name = "Title"
+    KeyTitle.Size = UDim2.new(1, -40, 0, 40)
+    KeyTitle.Position = UDim2.new(0, 20, 0, 20)
+    KeyTitle.BackgroundTransparency = 1
+    KeyTitle.Text = keySystem.Title or "Key System"
+    KeyTitle.TextColor3 = LXAIL.CurrentTheme.Text
+    KeyTitle.TextSize = 24
+    KeyTitle.Font = Enum.Font.GothamBold
+    KeyTitle.TextXAlignment = Enum.TextXAlignment.Center
+    KeyTitle.Parent = KeyFrame
+    
+    -- Subtitle
+    local KeySubtitle = Instance.new("TextLabel")
+    KeySubtitle.Name = "Subtitle"
+    KeySubtitle.Size = UDim2.new(1, -40, 0, 30)
+    KeySubtitle.Position = UDim2.new(0, 20, 0, 70)
+    KeySubtitle.BackgroundTransparency = 1
+    KeySubtitle.Text = keySystem.Subtitle or "Enter access key"
+    KeySubtitle.TextColor3 = LXAIL.CurrentTheme.TextDark
+    KeySubtitle.TextSize = 16
+    KeySubtitle.Font = Enum.Font.Gotham
+    KeySubtitle.TextXAlignment = Enum.TextXAlignment.Center
+    KeySubtitle.Parent = KeyFrame
+    
+    -- Note
+    if keySystem.Note then
+        local KeyNote = Instance.new("TextLabel")
+        KeyNote.Name = "Note"
+        KeyNote.Size = UDim2.new(1, -40, 0, 25)
+        KeyNote.Position = UDim2.new(0, 20, 0, 110)
+        KeyNote.BackgroundTransparency = 1
+        KeyNote.Text = keySystem.Note
+        KeyNote.TextColor3 = LXAIL.CurrentTheme.TextDark
+        KeyNote.TextSize = 14
+        KeyNote.Font = Enum.Font.Gotham
+        KeyNote.TextXAlignment = Enum.TextXAlignment.Center
+        KeyNote.TextWrapped = true
+        KeyNote.Parent = KeyFrame
     end
+    
+    -- Key input
+    local KeyInput = Instance.new("TextBox")
+    KeyInput.Name = "KeyInput"
+    KeyInput.Size = UDim2.new(1, -60, 0, 40)
+    KeyInput.Position = UDim2.new(0, 30, 0, 150)
+    KeyInput.BackgroundColor3 = LXAIL.CurrentTheme.Secondary
+    KeyInput.BorderSizePixel = 0
+    KeyInput.Text = ""
+    KeyInput.PlaceholderText = "Enter your key here..."
+    KeyInput.TextColor3 = LXAIL.CurrentTheme.Text
+    KeyInput.PlaceholderColor3 = LXAIL.CurrentTheme.TextDark
+    KeyInput.TextSize = 16
+    KeyInput.Font = Enum.Font.Gotham
+    KeyInput.TextXAlignment = Enum.TextXAlignment.Center
+    KeyInput.ClearTextOnFocus = false
+    KeyInput.Parent = KeyFrame
+    
+    local InputCorner = Instance.new("UICorner")
+    InputCorner.CornerRadius = UDim.new(0, 8)
+    InputCorner.Parent = KeyInput
+    
+    -- Submit button
+    local SubmitButton = Instance.new("TextButton")
+    SubmitButton.Name = "SubmitButton"
+    SubmitButton.Size = UDim2.new(0, 150, 0, 35)
+    SubmitButton.Position = UDim2.new(0.5, -75, 0, 210)
+    SubmitButton.BackgroundColor3 = LXAIL.CurrentTheme.Accent
+    SubmitButton.BorderSizePixel = 0
+    SubmitButton.Text = "Submit Key"
+    SubmitButton.TextColor3 = LXAIL.CurrentTheme.Text
+    SubmitButton.TextSize = 16
+    SubmitButton.Font = Enum.Font.GothamBold
+    SubmitButton.Parent = KeyFrame
+    
+    local SubmitCorner = Instance.new("UICorner")
+    SubmitCorner.CornerRadius = UDim.new(0, 8)
+    SubmitCorner.Parent = SubmitButton
+    
+    -- Status label
+    local StatusLabel = Instance.new("TextLabel")
+    StatusLabel.Name = "Status"
+    StatusLabel.Size = UDim2.new(1, -40, 0, 25)
+    StatusLabel.Position = UDim2.new(0, 20, 0, 260)
+    StatusLabel.BackgroundTransparency = 1
+    StatusLabel.Text = ""
+    StatusLabel.TextColor3 = LXAIL.CurrentTheme.Error
+    StatusLabel.TextSize = 14
+    StatusLabel.Font = Enum.Font.Gotham
+    StatusLabel.TextXAlignment = Enum.TextXAlignment.Center
+    StatusLabel.Parent = KeyFrame
+    
+    -- Validate key function
+    local function validateKey(inputKey)
+        local keys = keySystem.Key or {}
+        for _, validKey in pairs(keys) do
+            if inputKey == validKey then
+                return true
+            end
+        end
+        return false
+    end
+    
+    -- Submit handler
+    local function submitKey()
+        local inputKey = KeyInput.Text
+        
+        if inputKey == "" then
+            StatusLabel.Text = "Please enter a key"
+            StatusLabel.TextColor3 = LXAIL.CurrentTheme.Warning
+            return
+        end
+        
+        if validateKey(inputKey) then
+            StatusLabel.Text = "Key accepted! Loading..."
+            StatusLabel.TextColor3 = LXAIL.CurrentTheme.Success
+            
+            -- Save key if enabled
+            if keySystem.SaveKey then
+                LXAIL.Flags["SavedKey"] = inputKey
+            end
+            
+            -- Close key system
+            spawn(function()
+                wait(1)
+                KeyGui:Destroy()
+                
+                -- Continue with main UI creation
+                if self.LoadingTitle then
+                    wait(0.5) -- Small delay before continuing
+                end
+                
+                LXAIL:Notify({
+                    Title = "Access Granted",
+                    Content = "Key verified successfully!",
+                    Duration = 3,
+                    Type = "Success"
+                })
+            end)
+        else
+            StatusLabel.Text = "Invalid key. Please try again."
+            StatusLabel.TextColor3 = LXAIL.CurrentTheme.Error
+            
+            -- Shake animation
+            local originalPos = KeyFrame.Position
+            KeyFrame:TweenPosition(UDim2.new(0.5, -210, 0.5, -150), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.1, true)
+            wait(0.1)
+            KeyFrame:TweenPosition(UDim2.new(0.5, -190, 0.5, -150), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.1, true)
+            wait(0.1)
+            KeyFrame:TweenPosition(originalPos, Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.1, true)
+        end
+    end
+    
+    -- Button click
+    SubmitButton.MouseButton1Click:Connect(submitKey)
+    
+    -- Enter key press
+    KeyInput.FocusLost:Connect(function(enterPressed)
+        if enterPressed then
+            submitKey()
+        end
+    end)
+    
+    -- Auto-focus input
+    spawn(function()
+        wait(0.1)
+        KeyInput:CaptureFocus()
+    end)
+    
+    -- Slide in animation
+    KeyFrame.Position = UDim2.new(0.5, -200, 1, 150)
+    KeyFrame:TweenPosition(UDim2.new(0.5, -200, 0.5, -150), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.5, true)
 end
 
 function Window:InitializeDiscord()
