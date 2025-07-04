@@ -12,23 +12,232 @@
 -- █                                                                                                                                █
 -- ████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
 
--- Services
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
-local HttpService = game:GetService("HttpService")
-local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Lighting = game:GetService("Lighting")
-local CoreGui = game:GetService("CoreGui")
-local SoundService = game:GetService("SoundService")
-local StarterPlayer = game:GetService("StarterPlayer")
-local StarterPlayerScripts = StarterPlayer:WaitForChild("StarterPlayerScripts")
+-- === ROBLOX SERVICES ===
+local TweenService, UserInputService, RunService, HttpService, TextService, GuiService, Players, CoreGui, SoundService, player, playerGui
 
--- Variables
-local player = Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
-local mouse = player:GetMouse()
+if game then
+    -- Running in Roblox environment
+    TweenService = game:GetService("TweenService")
+    UserInputService = game:GetService("UserInputService")
+    RunService = game:GetService("RunService")
+    HttpService = game:GetService("HttpService")
+    TextService = game:GetService("TextService")
+    GuiService = game:GetService("GuiService")
+    Players = game:GetService("Players")
+    CoreGui = game:GetService("CoreGui")
+    SoundService = game:GetService("SoundService")
+    player = Players.LocalPlayer
+    playerGui = player:WaitForChild("PlayerGui")
+else
+    -- Mock environment for local testing
+    TweenService = {
+        Create = function(obj, info, props) 
+            return {
+                Play = function() print("TweenService:Create() - Playing tween") end,
+                Completed = {
+                    Connect = function(callback) 
+                        print("TweenService - Tween completed") 
+                        if callback and type(callback) == "function" then 
+                            callback() 
+                        end 
+                    end,
+                    Wait = function() print("TweenService - Waiting for tween completion") end
+                }
+            } 
+        end
+    }
+    UserInputService = {
+        InputBegan = {Connect = function(func) print("UserInputService.InputBegan connected") end},
+        InputChanged = {Connect = function(func) print("UserInputService.InputChanged connected") end},
+        InputEnded = {Connect = function(func) print("UserInputService.InputEnded connected") end}
+    }
+    RunService = {
+        Heartbeat = {Connect = function(func) print("RunService.Heartbeat connected") end}
+    }
+    HttpService = {
+        JSONEncode = function(t) return "{}" end,
+        JSONDecode = function(s) return {} end
+    }
+    TextService = {
+        GetTextSize = function() return {X = 100, Y = 20} end
+    }
+    GuiService = {}
+    Players = {
+        LocalPlayer = {
+            Name = "LocalPlayer",
+            DisplayName = "TestPlayer",
+            UserId = 1
+        }
+    }
+    CoreGui = {}
+    SoundService = {}
+    player = Players.LocalPlayer
+    playerGui = {}
+    
+    -- Mock Enum for compatibility
+    _G.Enum = _G.Enum or {
+        Font = {
+            Gotham = "Gotham",
+            GothamBold = "GothamBold",
+            GothamBlack = "GothamBlack"
+        },
+        EasingStyle = {
+            Quad = "Quad",
+            Linear = "Linear"
+        },
+        EasingDirection = {
+            Out = "Out",
+            In = "In"
+        },
+        UserInputType = {
+            MouseButton1 = "MouseButton1",
+            Touch = "Touch",
+            MouseMovement = "MouseMovement"
+        },
+        UserInputState = {
+            End = "End"
+        },
+        KeyCode = {
+            F = "F"
+        },
+        TextXAlignment = {
+            Left = "Left",
+            Center = "Center"
+        },
+        TextYAlignment = {
+            Center = "Center",
+            Top = "Top"
+        },
+        ScaleType = {
+            Slice = "Slice"
+        }
+    }
+    
+    -- Mock global functions
+    _G.wait = _G.wait or function(t) 
+        print("Waiting " .. (t or 0) .. " seconds...")
+    end
+    
+    _G.spawn = _G.spawn or function(func)
+        print("Spawning function...")
+        if func then func() end
+    end
+    
+    -- Mock Instance for compatibility
+    _G.Instance = _G.Instance or {
+        new = function(className)
+            local obj = {
+                ClassName = className,
+                Name = "",
+                Parent = nil,
+                Size = {X = {Scale = 0, Offset = 0}, Y = {Scale = 0, Offset = 0}},
+                Position = {X = {Scale = 0, Offset = 0}, Y = {Scale = 0, Offset = 0}},
+                BackgroundColor3 = {R = 1, G = 1, B = 1},
+                BackgroundTransparency = 0,
+                BorderSizePixel = 0,
+                Text = "",
+                TextColor3 = {R = 0, G = 0, B = 0},
+                TextSize = 14,
+                Font = "Gotham",
+                TextXAlignment = "Left",
+                TextYAlignment = "Center",
+                TextWrapped = false,
+                Visible = true,
+                Active = false,
+                Draggable = false,
+                ResetOnSpawn = false,
+                Enabled = true,
+                IgnoreGuiInset = true,
+                ZIndex = 1,
+                AutoButtonColor = true,
+                MouseButton1Click = {Connect = function(f) print("MouseButton1Click connected") end},
+                MouseEnter = {Connect = function(f) print("MouseEnter connected") end},
+                MouseLeave = {Connect = function(f) print("MouseLeave connected") end},
+                FocusLost = {Connect = function(f) print("FocusLost connected") end},
+                InputBegan = {Connect = function(f) print("InputBegan connected") end},
+                InputChanged = {Connect = function(f) print("InputChanged connected") end},
+                Changed = {Connect = function(f) print("Changed connected") end},
+                Ended = {Connect = function(f) print("Ended connected") end},
+                Play = function() print("Playing " .. className) end,
+                Destroy = function() print("Destroying " .. className) end
+            }
+            return obj
+        end
+    }
+    
+    -- Mock Color3 for compatibility  
+    _G.Color3 = _G.Color3 or {
+        fromRGB = function(r, g, b)
+            return {R = r/255, G = g/255, B = b/255}
+        end
+    }
+    
+    -- Mock UDim for compatibility
+    _G.UDim = _G.UDim or {
+        new = function(scale, offset)
+            return {Scale = scale or 0, Offset = offset or 0}
+        end
+    }
+    
+    -- Mock UDim2 for compatibility
+    _G.UDim2 = _G.UDim2 or {
+        new = function(xScale, xOffset, yScale, yOffset)
+            return {
+                X = {Scale = xScale or 0, Offset = xOffset or 0},
+                Y = {Scale = yScale or 0, Offset = yOffset or 0}
+            }
+        end
+    }
+    
+    -- Mock Vector2 for compatibility
+    _G.Vector2 = _G.Vector2 or {
+        new = function(x, y)
+            return {X = x or 0, Y = y or 0}
+        end
+    }
+    
+    -- Mock TweenInfo for compatibility
+    _G.TweenInfo = _G.TweenInfo or {
+        new = function(duration, easingStyle, easingDirection)
+            return {
+                Time = duration or 1,
+                EasingStyle = easingStyle or "Quad",
+                EasingDirection = easingDirection or "Out"
+            }
+        end
+    }
+    
+    -- Mock Rect for compatibility
+    _G.Rect = _G.Rect or {
+        new = function(x1, y1, x2, y2)
+            return {
+                Min = {X = x1 or 0, Y = y1 or 0},
+                Max = {X = x2 or 0, Y = y2 or 0}
+            }
+        end
+    }
+    
+    -- Mock ColorSequence for compatibility
+    _G.ColorSequence = _G.ColorSequence or {
+        new = function(colors)
+            return {Colors = colors or {}}
+        end
+    }
+    
+    -- Mock ColorSequenceKeypoint for compatibility
+    _G.ColorSequenceKeypoint = _G.ColorSequenceKeypoint or {
+        new = function(time, color)
+            return {Time = time or 0, Value = color or {R = 1, G = 1, B = 1}}
+        end
+    }
+    
+    -- Mock NumberSequence for compatibility
+    _G.NumberSequence = _G.NumberSequence or {
+        new = function(value)
+            return {Value = value or 0}
+        end
+    }
+end
 
 -- LXAIL Library
 local LXAIL = {
@@ -485,19 +694,23 @@ function LXAIL:Notify(config)
     
     local notification = Instance.new("Frame")
     notification.Name = "Notification"
-    notification.Size = UDim2.new(0, 400, 0, 90)
-    notification.Position = UDim2.new(1, 10, 0, 100 + (#self.Notifications * 100))
-    notification.BackgroundColor3 = getTheme().SecondaryColor
-    notification.BackgroundTransparency = 0.1
+    notification.Size = UDim2.new(0, 420, 0, 100)
+    notification.Position = UDim2.new(1, 10, 0, 100 + (#self.Notifications * 110))
+    notification.BackgroundColor3 = getTheme().MainColor
+    notification.BackgroundTransparency = 0.05
     notification.BorderSizePixel = 0
     notification.Parent = notificationGui
     
-    createCorner(notification, 10)
-    createShadow(notification)
+    createCorner(notification, 12)
+    createShadow(notification, UDim2.new(1, 20, 1, 20), UDim2.new(0, -10, 0, -10), 0.7)
+    createGradient(notification, ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 25, 25)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 15, 15))
+    }, 45)
     
     local colorAccent = Instance.new("Frame")
     colorAccent.Name = "ColorAccent"
-    colorAccent.Size = UDim2.new(0, 5, 1, 0)
+    colorAccent.Size = UDim2.new(0, 6, 1, 0)
     colorAccent.Position = UDim2.new(0, 0, 0, 0)
     colorAccent.BorderSizePixel = 0
     colorAccent.Parent = notification
@@ -518,12 +731,14 @@ function LXAIL:Notify(config)
     
     local iconLabel = Instance.new("TextLabel")
     iconLabel.Name = "Icon"
-    iconLabel.Size = UDim2.new(0, 40, 0, 40)
-    iconLabel.Position = UDim2.new(0, 15, 0, 10)
+    iconLabel.Size = UDim2.new(0, 50, 0, 50)
+    iconLabel.Position = UDim2.new(0, 18, 0, 25)
     iconLabel.BackgroundTransparency = 1
     iconLabel.TextColor3 = accentColor
-    iconLabel.TextSize = 24
+    iconLabel.TextSize = 28
     iconLabel.Font = Enum.Font.GothamBold
+    iconLabel.TextXAlignment = Enum.TextXAlignment.Center
+    iconLabel.TextYAlignment = Enum.TextYAlignment.Center
     iconLabel.Parent = notification
     
     local iconText = "ℹ"
@@ -538,26 +753,28 @@ function LXAIL:Notify(config)
     
     local titleLabel = Instance.new("TextLabel")
     titleLabel.Name = "Title"
-    titleLabel.Size = UDim2.new(1, -100, 0, 30)
-    titleLabel.Position = UDim2.new(0, 60, 0, 8)
+    titleLabel.Size = UDim2.new(1, -120, 0, 35)
+    titleLabel.Position = UDim2.new(0, 75, 0, 15)
     titleLabel.BackgroundTransparency = 1
     titleLabel.Text = config.Title or "Notification"
     titleLabel.TextColor3 = getTheme().TextColor
-    titleLabel.TextSize = 18
+    titleLabel.TextSize = 20
     titleLabel.Font = Enum.Font.GothamBold
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.TextYAlignment = Enum.TextYAlignment.Top
     titleLabel.Parent = notification
     
     local contentLabel = Instance.new("TextLabel")
     contentLabel.Name = "Content"
-    contentLabel.Size = UDim2.new(1, -100, 0, 40)
-    contentLabel.Position = UDim2.new(0, 60, 0, 35)
+    contentLabel.Size = UDim2.new(1, -120, 0, 35)
+    contentLabel.Position = UDim2.new(0, 75, 0, 48)
     contentLabel.BackgroundTransparency = 1
     contentLabel.Text = config.Content or "Content"
     contentLabel.TextColor3 = getTheme().SubTextColor
-    contentLabel.TextSize = 14
+    contentLabel.TextSize = 15
     contentLabel.Font = Enum.Font.Gotham
     contentLabel.TextXAlignment = Enum.TextXAlignment.Left
+    contentLabel.TextYAlignment = Enum.TextYAlignment.Top
     contentLabel.TextWrapped = true
     contentLabel.Parent = notification
     
@@ -577,7 +794,7 @@ function LXAIL:Notify(config)
     
     -- Slide in animation
     tween(notification, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-        Position = UDim2.new(1, -410, 0, 100 + ((#self.Notifications - 1) * 100))
+        Position = UDim2.new(1, -430, 0, 100 + ((#self.Notifications - 1) * 110))
     })
     
     -- Auto close
@@ -600,7 +817,7 @@ function LXAIL:Notify(config)
         -- Reposition other notifications
         for i, notif in ipairs(self.Notifications) do
             tween(notif.frame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                Position = UDim2.new(1, -410, 0, 100 + ((i - 1) * 100))
+                Position = UDim2.new(1, -430, 0, 100 + ((i - 1) * 110))
             })
         end
         
@@ -623,7 +840,9 @@ function LXAIL:Notify(config)
     end)
     
     if duration > 0 then
-        closeConnection = game:GetService("Debris"):AddItem(notificationGui, duration)
+        if game then
+            closeConnection = game:GetService("Debris"):AddItem(notificationGui, duration)
+        end
         spawn(function()
             wait(duration)
             closeNotification()
@@ -665,8 +884,8 @@ function LXAIL:CreateWindow(config)
     -- Background frame
     local bg = Instance.new("Frame")
     bg.Name = "MainContainer"
-    bg.Size = UDim2.new(0, 650, 0, 450)
-    bg.Position = UDim2.new(0.5, -325, 0.5, -225)
+    bg.Size = UDim2.new(0, 800, 0, 600)
+    bg.Position = UDim2.new(0.5, -400, 0.5, -300)
     bg.BackgroundColor3 = getTheme().MainColor
     bg.BackgroundTransparency = getTheme().BackgroundTransparency
     bg.AnchorPoint = Vector2.new(0, 0)
@@ -704,25 +923,27 @@ function LXAIL:CreateWindow(config)
         local fadeInInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
         local fadeOutInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
         
-        while mainGui.Parent and window.Visible do
-            for _, letter in ipairs(letters) do
-                if mainGui.Parent and window.Visible then
-                    TweenService:Create(letter, fadeInInfo, {TextTransparency = 0}):Play()
-                    wait(0.1)
+        spawn(function()
+            while mainGui.Parent and window.Visible do
+                for _, letter in ipairs(letters) do
+                    if mainGui.Parent and window.Visible then
+                        TweenService:Create(letter, fadeInInfo, {TextTransparency = 0}):Play()
+                        wait(0.1)
+                    end
                 end
-            end
-            wait(0.6)
-            for _, letter in ipairs(letters) do
-                if mainGui.Parent and window.Visible then
-                    TweenService:Create(letter, fadeOutInfo, {TextTransparency = 1}):Play()
-                    wait(0.1)
+                wait(0.6)
+                for _, letter in ipairs(letters) do
+                    if mainGui.Parent and window.Visible then
+                        TweenService:Create(letter, fadeOutInfo, {TextTransparency = 1}):Play()
+                        wait(0.1)
+                    end
                 end
+                wait(0.6)
             end
-            wait(0.6)
-        end
+        end)
     end
     
-    coroutine.wrap(animateLetters)()
+    animateLetters()
     
     -- Close button
     local closeButton = Instance.new("TextButton")
@@ -777,10 +998,10 @@ function LXAIL:CreateWindow(config)
         local isMinimized = bg.Size.Y.Offset <= 60
         
         if isMinimized then
-            tween(bg, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {Size = UDim2.new(0, 650, 0, 450)})
+            tween(bg, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {Size = UDim2.new(0, 800, 0, 600)})
             minimizeButton.Text = "_"
         else
-            tween(bg, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {Size = UDim2.new(0, 650, 0, 60)})
+            tween(bg, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {Size = UDim2.new(0, 800, 0, 60)})
             minimizeButton.Text = "□"
         end
     end)
