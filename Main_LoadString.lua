@@ -2561,7 +2561,8 @@ function LXAIL:CreateWindow(options)
                     LXAIL.Flags[flag] = newKey
                 end
                 
-                callback(newKey)
+                -- Don't call the callback when setting the key, only when the key is pressed
+                print("Keybind updated: " .. name .. " -> " .. newKey)
             end
             
             keybindButton.MouseButton1Click:Connect(function()
@@ -2572,6 +2573,7 @@ function LXAIL:CreateWindow(options)
                 end
             end)
             
+            -- Key listening for setting new keybind
             UserInputService.InputBegan:Connect(function(input, gameProcessed)
                 if listeningForKey and not gameProcessed then
                     local keyName = input.KeyCode.Name
@@ -2582,6 +2584,32 @@ function LXAIL:CreateWindow(options)
                     end
                 end
             end)
+            
+            -- Key detection for executing callback when assigned key is pressed
+            UserInputService.InputBegan:Connect(function(input, gameProcessed)
+                if not listeningForKey and not gameProcessed and input.UserInputType == Enum.UserInputType.Keyboard then
+                    local keyName = input.KeyCode.Name
+                    if keyName == currentKey then
+                        if not holdToInteract then
+                            -- Execute callback immediately for non-hold keys
+                            callback()
+                        end
+                    end
+                end
+            end)
+            
+            -- Handle hold-to-interact functionality
+            if holdToInteract then
+                UserInputService.InputEnded:Connect(function(input, gameProcessed)
+                    if not listeningForKey and not gameProcessed and input.UserInputType == Enum.UserInputType.Keyboard then
+                        local keyName = input.KeyCode.Name
+                        if keyName == currentKey then
+                            -- Execute callback on key release for hold keys
+                            callback()
+                        end
+                    end
+                end)
+            end
             
             -- Set initial flag value
             if flag then

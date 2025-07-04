@@ -74,6 +74,16 @@ This repository contains a comprehensive Roblox UI Library that completely repli
 
 ```
 Changelog:
+- July 04, 2025: CREATEKEYBIND FUNCTIONALITY FIXED - COMPLETE KEY DETECTION SYSTEM
+  - FIXED: CreateKeybind now properly executes callbacks when assigned keys are pressed
+  - DETECTION: Added comprehensive key press detection using UserInputService.InputBegan
+  - HOLD MODE: Implemented proper hold-to-interact functionality with InputEnded detection
+  - SEPARATION: Clear separation between key assignment (setting new key) and key execution (using assigned key)
+  - FUNCTIONALITY: Keybinds now work exactly like Rayfield - press assigned key to trigger callback
+  - EXAMPLES: Fixed user's AutoBlock toggle example - Y key now properly toggles state
+  - CALLBACK LOGIC: Callbacks only execute on key press, not when assigning new keys
+  - COMPATIBILITY: Maintains full Rayfield API compatibility with enhanced reliability
+  - TESTING: Verified with multiple keybind scenarios including regular and hold modes
 - July 04, 2025: SCROLL/CLICK DETECTION SYSTEM IMPLEMENTED - PERFECT UI INTERACTION
   - IMPLEMENTED: Advanced click vs scroll detection system for both ScrollingFrame containers
   - TAB SCROLLFRAME: Added detection to prevent tab switching during scroll operations
