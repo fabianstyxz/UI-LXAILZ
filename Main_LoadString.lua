@@ -108,6 +108,8 @@ else
                 MouseButton1Click = {Connect = function(self, func) print("MouseButton1Click connected") end},
                 Changed = {Connect = function(self, func) print("Changed event connected") end},
                 Ended = {Connect = function(self, func) print("Sound Ended event connected") end},
+                Focused = {Connect = function(self, func) print("TextBox Focused event connected") end},
+                FocusLost = {Connect = function(self, func) print("TextBox FocusLost event connected") end},
                 Play = function(self) print("Playing sound:", self.SoundId) end,
                 Stop = function(self) print("Stopping sound:", self.SoundId) end,
                 Destroy = function(self) print("Destroying", self.ClassName) end
@@ -117,10 +119,24 @@ else
     
     UDim2 = {
         new = function(xScale, xOffset, yScale, yOffset)
-            return {
+            local udim2 = {
                 X = {Scale = xScale or 0, Offset = xOffset or 0},
                 Y = {Scale = yScale or 0, Offset = yOffset or 0}
             }
+            
+            -- Add metamethod for addition
+            local meta = {
+                __add = function(a, b)
+                    return UDim2.new(
+                        a.X.Scale + b.X.Scale,
+                        a.X.Offset + b.X.Offset,
+                        a.Y.Scale + b.Y.Scale,
+                        a.Y.Offset + b.Y.Offset
+                    )
+                end
+            }
+            setmetatable(udim2, meta)
+            return udim2
         end
     }
     
