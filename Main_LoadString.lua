@@ -1955,12 +1955,32 @@ function LXAIL:CreateWindow(options)
                 end
             end)
             
+            -- Handle text input to update slider
             box.FocusLost:Connect(function()
                 local val = tonumber(box.Text:gsub(suffix, ""))
                 if val then
                     setSlider(val)
                 else
                     box.Text = tostring(sliderValue) .. suffix
+                end
+            end)
+            
+            -- Optional: Update while typing (on Enter key)
+            box.Focused:Connect(function()
+                -- Allow immediate update when Enter is pressed
+            end)
+            
+            -- Handle Enter key press for immediate update
+            UserInputService.InputBegan:Connect(function(input, gameProcessed)
+                if gameProcessed then return end
+                if input.KeyCode == Enum.KeyCode.Return or input.KeyCode == Enum.KeyCode.KeypadEnter then
+                    if box:IsFocused() then
+                        local val = tonumber(box.Text:gsub(suffix, ""))
+                        if val then
+                            setSlider(val)
+                            box:ReleaseFocus()
+                        end
+                    end
                 end
             end)
             
