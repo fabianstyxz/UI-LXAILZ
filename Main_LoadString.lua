@@ -304,7 +304,8 @@ local LXAIL = {
     -- UI References
     CurrentWindow = nil,
     CurrentTab = nil,
-    UIExists = false
+    UIExists = false,
+    FloatingButtonExists = false
 }
 
 -- === MODERN UI THEME ===
@@ -752,6 +753,11 @@ function LXAIL:CreateWindow(Options)
     local Discord = WindowOptions.Discord
     local KeySystem = WindowOptions.KeySystem
     
+    -- Show loading screen if LoadingTitle or LoadingSubtitle is provided
+    if LoadingTitle ~= "LXAIL Loading..." or LoadingSubtitle ~= "Modern UI Library" then
+        self:ShowLoadingScreen(LoadingTitle, LoadingSubtitle)
+    end
+    
     -- Create main GUI
     local mainGui = Instance.new("ScreenGui")
     mainGui.Name = "LXAILUI"
@@ -875,8 +881,11 @@ function LXAIL:CreateWindow(Options)
     playerName.TextXAlignment = Enum.TextXAlignment.Left
     playerName.Parent = profile
     
-    -- Create floating button
-    self:CreateFloatingButton(mainGui)
+    -- Create floating button only if it doesn't exist
+    if not self.FloatingButtonExists then
+        self:CreateFloatingButton(mainGui)
+        self.FloatingButtonExists = true
+    end
     
     -- Make draggable
     self:MakeDraggable(dragBar, bg)
@@ -1142,6 +1151,14 @@ end
 
 -- === FLOATING BUTTON ===
 function LXAIL:CreateFloatingButton(mainGui)
+    -- Remove existing floating button if it exists
+    if PlayerGui and PlayerGui:FindFirstChild("ToggleButtonGui") then
+        PlayerGui:FindFirstChild("ToggleButtonGui"):Destroy()
+    end
+    if CoreGui and CoreGui:FindFirstChild("ToggleButtonGui") then
+        CoreGui:FindFirstChild("ToggleButtonGui"):Destroy()
+    end
+    
     local buttonGui = Instance.new("ScreenGui")
     buttonGui.Name = "ToggleButtonGui"
     buttonGui.Parent = PlayerGui or CoreGui
@@ -1972,6 +1989,99 @@ end
 
 -- === ADVANCED SYSTEMS ===
 
+-- Loading Screen Implementation
+function LXAIL:ShowLoadingScreen(loadingTitle, loadingSubtitle)
+    local loadingGui = Instance.new("ScreenGui")
+    loadingGui.Name = "LXAIL_LoadingScreen"
+    loadingGui.Parent = CoreGui or PlayerGui
+    if loadingGui.ZIndexBehavior then
+        loadingGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    end
+    
+    -- Background
+    local background = Instance.new("Frame")
+    background.Size = UDim2.new(1, 0, 1, 0)
+    background.Position = UDim2.new(0, 0, 0, 0)
+    background.BackgroundColor3 = LXAIL.ModernTheme.Background
+    background.BorderSizePixel = 0
+    background.ZIndex = 200
+    background.Parent = loadingGui
+    
+    -- Loading container
+    local container = Instance.new("Frame")
+    container.Size = UDim2.new(0, 400, 0, 200)
+    container.Position = UDim2.new(0.5, -200, 0.5, -100)
+    container.BackgroundTransparency = 1
+    container.ZIndex = 201
+    container.Parent = loadingGui
+    
+    -- Animated title with typewriter effect
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Text = ""
+    titleLabel.Font = Enum.Font.GothamBlack
+    titleLabel.TextSize = 32
+    titleLabel.TextColor3 = LXAIL.ModernTheme.Text
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Size = UDim2.new(1, 0, 0, 50)
+    titleLabel.Position = UDim2.new(0, 0, 0, 30)
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Center
+    titleLabel.ZIndex = 202
+    titleLabel.Parent = container
+    
+    -- Subtitle
+    local subtitleLabel = Instance.new("TextLabel")
+    subtitleLabel.Text = loadingSubtitle
+    subtitleLabel.Font = Enum.Font.Gotham
+    subtitleLabel.TextSize = 18
+    subtitleLabel.TextColor3 = LXAIL.ModernTheme.TextSecondary
+    subtitleLabel.BackgroundTransparency = 1
+    subtitleLabel.Size = UDim2.new(1, 0, 0, 30)
+    subtitleLabel.Position = UDim2.new(0, 0, 0, 90)
+    subtitleLabel.TextXAlignment = Enum.TextXAlignment.Center
+    subtitleLabel.ZIndex = 202
+    subtitleLabel.Parent = container
+    
+    -- Loading bar
+    local loadingBarBG = Instance.new("Frame")
+    loadingBarBG.Size = UDim2.new(0.8, 0, 0, 4)
+    loadingBarBG.Position = UDim2.new(0.1, 0, 0, 140)
+    loadingBarBG.BackgroundColor3 = LXAIL.ModernTheme.Secondary
+    loadingBarBG.BorderSizePixel = 0
+    loadingBarBG.ZIndex = 202
+    loadingBarBG.Parent = container
+    CreateCorner(loadingBarBG, 2)
+    
+    local loadingBar = Instance.new("Frame")
+    loadingBar.Size = UDim2.new(0, 0, 1, 0)
+    loadingBar.Position = UDim2.new(0, 0, 0, 0)
+    loadingBar.BackgroundColor3 = LXAIL.ModernTheme.Accent
+    loadingBar.BorderSizePixel = 0
+    loadingBar.ZIndex = 203
+    loadingBar.Parent = loadingBarBG
+    CreateCorner(loadingBar, 2)
+    
+    -- Typewriter effect for title
+    spawn(function()
+        for i = 1, #loadingTitle do
+            titleLabel.Text = loadingTitle:sub(1, i)
+            wait(0.05)
+        end
+        
+        -- Animate loading bar
+        CreateTween(loadingBar, 2, {Size = UDim2.new(1, 0, 1, 0)})
+        wait(2.5)
+        
+        -- Fade out loading screen
+        CreateTween(background, 0.5, {BackgroundTransparency = 1})
+        CreateTween(titleLabel, 0.5, {TextTransparency = 1})
+        CreateTween(subtitleLabel, 0.5, {TextTransparency = 1})
+        CreateTween(loadingBarBG, 0.5, {BackgroundTransparency = 1})
+        CreateTween(loadingBar, 0.5, {BackgroundTransparency = 1})
+        wait(0.5)
+        loadingGui:Destroy()
+    end)
+end
+
 -- Key System Implementation
 function LXAIL:ShowKeySystem(KeySystemOptions)
     local KeyOptions = KeySystemOptions or {}
@@ -1985,98 +2095,192 @@ function LXAIL:ShowKeySystem(KeySystemOptions)
     
     print("🔑 KeySystem: Showing key authentication")
     
-    -- Create key system GUI
+    -- Create key system GUI with modern design
     local keyGui = Instance.new("ScreenGui")
     keyGui.Name = "LXAIL_KeySystem"
     keyGui.Parent = CoreGui or PlayerGui
+    if keyGui.ZIndexBehavior then
+        keyGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    end
+    
+    -- Background overlay
+    local overlay = Instance.new("Frame")
+    overlay.Size = UDim2.new(1, 0, 1, 0)
+    overlay.Position = UDim2.new(0, 0, 0, 0)
+    overlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    overlay.BackgroundTransparency = 0.3
+    overlay.BorderSizePixel = 0
+    overlay.ZIndex = 100
+    overlay.Parent = keyGui
     
     local keyFrame = Instance.new("Frame")
-    keyFrame.Size = UDim2.new(0, 400, 0, 300)
-    keyFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
+    keyFrame.Size = UDim2.new(0, 450, 0, 350)
+    keyFrame.Position = UDim2.new(0.5, -225, 0.5, -175)
     keyFrame.BackgroundColor3 = LXAIL.ModernTheme.Background
     keyFrame.BorderSizePixel = 0
+    keyFrame.ZIndex = 101
     keyFrame.Parent = keyGui
     CreateCorner(keyFrame, 12)
+    CreateShadow(keyFrame, 0.7)
+    CreateGradient(keyFrame)
     
+    -- Modern animated title
     local titleLabel = Instance.new("TextLabel")
     titleLabel.Text = Title
-    titleLabel.Font = Enum.Font.GothamBold
-    titleLabel.TextSize = 24
+    titleLabel.Font = Enum.Font.GothamBlack
+    titleLabel.TextSize = 28
     titleLabel.TextColor3 = LXAIL.ModernTheme.Text
     titleLabel.BackgroundTransparency = 1
-    titleLabel.Size = UDim2.new(1, 0, 0, 40)
-    titleLabel.Position = UDim2.new(0, 0, 0, 20)
+    titleLabel.Size = UDim2.new(1, -40, 0, 50)
+    titleLabel.Position = UDim2.new(0, 20, 0, 20)
     titleLabel.TextXAlignment = Enum.TextXAlignment.Center
+    titleLabel.ZIndex = 102
     titleLabel.Parent = keyFrame
+    
+    -- Title underline
+    local titleUnderline = Instance.new("Frame")
+    titleUnderline.Size = UDim2.new(0, 100, 0, 2)
+    titleUnderline.Position = UDim2.new(0.5, -50, 0, 75)
+    titleUnderline.BackgroundColor3 = LXAIL.ModernTheme.Accent
+    titleUnderline.BorderSizePixel = 0
+    titleUnderline.ZIndex = 102
+    titleUnderline.Parent = keyFrame
+    CreateCorner(titleUnderline, 1)
     
     local subtitleLabel = Instance.new("TextLabel")
     subtitleLabel.Text = Subtitle
     subtitleLabel.Font = Enum.Font.Gotham
     subtitleLabel.TextSize = 16
-    subtitleLabel.TextColor3 = LXAIL.ModernTheme.Text
+    subtitleLabel.TextColor3 = LXAIL.ModernTheme.TextSecondary
     subtitleLabel.BackgroundTransparency = 1
-    subtitleLabel.Size = UDim2.new(1, 0, 0, 30)
-    subtitleLabel.Position = UDim2.new(0, 0, 0, 60)
+    subtitleLabel.Size = UDim2.new(1, -40, 0, 30)
+    subtitleLabel.Position = UDim2.new(0, 20, 0, 85)
     subtitleLabel.TextXAlignment = Enum.TextXAlignment.Center
+    subtitleLabel.ZIndex = 102
     subtitleLabel.Parent = keyFrame
     
     local noteLabel = Instance.new("TextLabel")
     noteLabel.Text = Note
     noteLabel.Font = Enum.Font.Gotham
     noteLabel.TextSize = 14
-    noteLabel.TextColor3 = LXAIL.ModernTheme.Text
+    noteLabel.TextColor3 = LXAIL.ModernTheme.TextSecondary
     noteLabel.BackgroundTransparency = 1
-    noteLabel.Size = UDim2.new(1, -40, 0, 40)
-    noteLabel.Position = UDim2.new(0, 20, 0, 100)
+    noteLabel.Size = UDim2.new(1, -40, 0, 50)
+    noteLabel.Position = UDim2.new(0, 20, 0, 125)
     noteLabel.TextXAlignment = Enum.TextXAlignment.Center
     noteLabel.TextWrapped = true
+    noteLabel.ZIndex = 102
     noteLabel.Parent = keyFrame
     
     local keyInput = Instance.new("TextBox")
-    keyInput.Size = UDim2.new(0.8, 0, 0, 40)
-    keyInput.Position = UDim2.new(0.1, 0, 0, 160)
+    keyInput.Size = UDim2.new(0.85, 0, 0, 45)
+    keyInput.Position = UDim2.new(0.075, 0, 0, 185)
     keyInput.Font = Enum.Font.Gotham
     keyInput.TextSize = 16
     keyInput.TextColor3 = LXAIL.ModernTheme.Text
     keyInput.BackgroundColor3 = LXAIL.ModernTheme.Secondary
     keyInput.BorderSizePixel = 0
     keyInput.PlaceholderText = "Enter your key here..."
+    keyInput.TextXAlignment = Enum.TextXAlignment.Center
+    keyInput.ZIndex = 102
     keyInput.Parent = keyFrame
     CreateCorner(keyInput, 8)
     
+    -- Input field stroke
+    local inputStroke = Instance.new("UIStroke")
+    inputStroke.Color = LXAIL.ModernTheme.Accent
+    inputStroke.Thickness = 2
+    inputStroke.Transparency = 0.7
+    inputStroke.Parent = keyInput
+    
     local submitButton = Instance.new("TextButton")
-    submitButton.Text = "Submit Key"
+    submitButton.Text = "✓ Submit Key"
     submitButton.Font = Enum.Font.GothamBold
     submitButton.TextSize = 16
-    submitButton.TextColor3 = LXAIL.ModernTheme.Text
+    submitButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     submitButton.BackgroundColor3 = LXAIL.ModernTheme.Accent
-    submitButton.Size = UDim2.new(0.4, 0, 0, 40)
-    submitButton.Position = UDim2.new(0.1, 0, 0, 220)
+    submitButton.Size = UDim2.new(0.4, 0, 0, 45)
+    submitButton.Position = UDim2.new(0.075, 0, 0, 250)
     submitButton.BorderSizePixel = 0
+    submitButton.ZIndex = 102
     submitButton.Parent = keyFrame
     CreateCorner(submitButton, 8)
     
     local getKeyButton = Instance.new("TextButton")
-    getKeyButton.Text = "Get Key"
+    getKeyButton.Text = "🔑 Get Key"
     getKeyButton.Font = Enum.Font.GothamBold
     getKeyButton.TextSize = 16
     getKeyButton.TextColor3 = LXAIL.ModernTheme.Text
     getKeyButton.BackgroundColor3 = LXAIL.ModernTheme.Secondary
-    getKeyButton.Size = UDim2.new(0.4, 0, 0, 40)
-    getKeyButton.Position = UDim2.new(0.5, 0, 0, 220)
+    getKeyButton.Size = UDim2.new(0.4, 0, 0, 45)
+    getKeyButton.Position = UDim2.new(0.525, 0, 0, 250)
     getKeyButton.BorderSizePixel = 0
+    getKeyButton.ZIndex = 102
     getKeyButton.Parent = keyFrame
     CreateCorner(getKeyButton, 8)
     
-    -- Key validation
+    -- Button hover effects
+    submitButton.MouseEnter:Connect(function()
+        CreateTween(submitButton, 0.2, {BackgroundColor3 = LXAIL.ModernTheme.AccentHover})
+    end)
+    
+    submitButton.MouseLeave:Connect(function()
+        CreateTween(submitButton, 0.2, {BackgroundColor3 = LXAIL.ModernTheme.Accent})
+    end)
+    
+    getKeyButton.MouseEnter:Connect(function()
+        CreateTween(getKeyButton, 0.2, {BackgroundColor3 = LXAIL.ModernTheme.Tertiary})
+    end)
+    
+    getKeyButton.MouseLeave:Connect(function()
+        CreateTween(getKeyButton, 0.2, {BackgroundColor3 = LXAIL.ModernTheme.Secondary})
+    end)
+    
+    -- Key validation with URL support
     submitButton.MouseButton1Click:Connect(function()
         local enteredKey = keyInput.Text
         local isValidKey = false
         
-        for _, validKey in ipairs(Key) do
-            if enteredKey == validKey then
-                isValidKey = true
-                break
+        -- Check if GrabKeyFromSite is enabled for URL validation
+        if GrabKeyFromSite and KeyOptions.KeySite then
+            -- URL-based key validation
+            local success, result = pcall(function()
+                return HttpService:GetAsync(KeyOptions.KeySite)
+            end)
+            
+            if success then
+                local validKeys = {}
+                -- Try to parse JSON response
+                local jsonSuccess, jsonResult = pcall(function()
+                    return HttpService:JSONDecode(result)
+                end)
+                
+                if jsonSuccess and jsonResult.keys then
+                    validKeys = jsonResult.keys
+                elseif jsonSuccess and jsonResult.key then
+                    validKeys = {jsonResult.key}
+                else
+                    -- If not JSON, treat as plain text key
+                    validKeys = {result:gsub("%s+", "")}
+                end
+                
+                -- Check against URL keys
+                for _, validKey in ipairs(validKeys) do
+                    if enteredKey == validKey then
+                        isValidKey = true
+                        break
+                    end
+                end
+            end
+        end
+        
+        -- Fallback to local keys if URL failed or not enabled
+        if not isValidKey then
+            for _, validKey in ipairs(Key) do
+                if enteredKey == validKey then
+                    isValidKey = true
+                    break
+                end
             end
         end
         
@@ -2085,25 +2289,64 @@ function LXAIL:ShowKeySystem(KeySystemOptions)
                 -- Save key to file (simulated)
                 print("Key saved:", enteredKey)
             end
+            
+            -- Success animation
+            CreateTween(keyFrame, 0.3, {BackgroundColor3 = LXAIL.ModernTheme.Accent})
+            wait(0.5)
             keyGui:Destroy()
             print("✅ Key validation successful!")
         else
             keyInput.Text = ""
             keyInput.PlaceholderText = "Invalid key! Try again..."
+            
+            -- Error animation
+            CreateTween(inputStroke, 0.1, {Color = Color3.fromRGB(255, 100, 100), Transparency = 0.3})
             CreateTween(keyFrame, 0.1, {Position = keyFrame.Position + UDim2.new(0, 10, 0, 0)})
             wait(0.1)
             CreateTween(keyFrame, 0.1, {Position = keyFrame.Position - UDim2.new(0, 10, 0, 0)})
+            wait(0.5)
+            CreateTween(inputStroke, 0.3, {Color = LXAIL.ModernTheme.Accent, Transparency = 0.7})
         end
     end)
     
     getKeyButton.MouseButton1Click:Connect(function()
-        print("Get key button clicked - would open Discord/website")
-        self:Notify({
-            Title = "Get Key",
-            Content = "Check our Discord server for keys!",
-            Duration = 3,
-            Type = "Info"
-        })
+        local keyUrl = KeyOptions.KeySite or KeyOptions.DiscordInvite or "https://discord.gg/your-server"
+        
+        if KeyOptions.KeySite then
+            print("Opening key website:", keyUrl)
+            self:Notify({
+                Title = "Get Key",
+                Content = "Visit the website to get your key!",
+                Duration = 3,
+                Type = "Info"
+            })
+        elseif KeyOptions.DiscordInvite then
+            print("Opening Discord server:", keyUrl)
+            self:Notify({
+                Title = "Join Discord",
+                Content = "Join our Discord server to get your key!",
+                Duration = 3,
+                Type = "Info"
+            })
+        else
+            print("Get key button clicked - default action")
+            self:Notify({
+                Title = "Get Key",
+                Content = "Check our Discord server for keys!",
+                Duration = 3,
+                Type = "Info"
+            })
+        end
+        
+        -- In Roblox, this would open the URL
+        if game then
+            local success, result = pcall(function()
+                return game:GetService("GuiService"):OpenBrowserWindow(keyUrl)
+            end)
+            if not success then
+                print("Could not open browser window")
+            end
+        end
     end)
     
     return keyGui
