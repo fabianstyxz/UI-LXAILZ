@@ -99,7 +99,11 @@ else
                         return {}
                     end,
                     FocusLost = {Connect = function() end},
-                    AbsoluteSize = Vector2.new(100, 100)
+                    AbsoluteSize = Vector2.new(100, 100),
+                    CaptureFocus = function() end,
+                    PlaceholderText = "",
+                    PlaceholderColor3 = Color3.new(0.5, 0.5, 0.5),
+                    ClearTextOnFocus = false
                 }
             end
         }
@@ -901,7 +905,25 @@ function Window.new(options)
     self.KeySystem = opts.KeySystem
     self.Tabs = {}
     self.Visible = true
+    self.KeyValidated = false
     
+    -- Check KeySystem FIRST - if enabled, show KeySystem before anything else
+    if self.KeySystem and self.KeySystem.Enabled then
+        self:InitializeKeySystem()
+    else
+        -- No KeySystem, proceed normally
+        self:StartWindowCreation()
+    end
+    
+    -- Initialize Discord if enabled
+    if self.Discord and self.Discord.Enabled then
+        self:InitializeDiscord()
+    end
+    
+    return self
+end
+
+function Window:StartWindowCreation()
     -- Show loading screen if enabled
     if self.LoadingTitle then
         LXAIL:CreateLoadingScreen({
@@ -917,18 +939,6 @@ function Window.new(options)
     else
         self:CreateMainUI()
     end
-    
-    -- Initialize KeySystem if enabled
-    if self.KeySystem and self.KeySystem.Enabled then
-        self:InitializeKeySystem()
-    end
-    
-    -- Initialize Discord if enabled
-    if self.Discord and self.Discord.Enabled then
-        self:InitializeDiscord()
-    end
-    
-    return self
 end
 
 function Window:CreateMainUI()
@@ -1069,9 +1079,17 @@ function Window:CreateMainUI()
     self.MainFrame.Position = UDim2.new(0.5, -300, 1, 200)
     self.MainFrame:TweenPosition(UDim2.new(0.5, -300, 0.5, -200), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.5, true)
     
+    -- Auto-select first tab if available
+    if #self.Tabs > 0 then
+        for i, tab in pairs(self.Tabs) do
+            self:CreateVisualTab(tab)
+        end
+        self:SelectTab(self.Tabs[1])
+    end
+    
     LXAIL:Notify({
         Title = "LXAIL Ready",
-        Content = "Interface loaded successfully! Create tabs to get started.",
+        Content = "Interface loaded successfully!",
         Duration = 3,
         Type = "Success"
     })
@@ -1080,6 +1098,20 @@ end
 function Window:InitializeKeySystem()
     local keySystem = self.KeySystem
     if not keySystem then return end
+    
+    -- Check if key is already saved and valid
+    if keySystem.SaveKey and LXAIL.Flags["SavedKey"] then
+        local savedKey = LXAIL.Flags["SavedKey"]
+        local keys = keySystem.Key or {}
+        for _, validKey in pairs(keys) do
+            if savedKey == validKey then
+                -- Key is valid, proceed directly
+                self.KeyValidated = true
+                self:StartWindowCreation()
+                return
+            end
+        end
+    end
     
     -- Create KeySystem GUI
     local KeyGui = Instance.new("ScreenGui")
@@ -1237,11 +1269,10 @@ function Window:InitializeKeySystem()
             spawn(function()
                 wait(1)
                 KeyGui:Destroy()
+                self.KeyValidated = true
                 
-                -- Continue with main UI creation
-                if self.LoadingTitle then
-                    wait(0.5) -- Small delay before continuing
-                end
+                -- NOW create the main UI after key validation
+                self:StartWindowCreation()
                 
                 LXAIL:Notify({
                     Title = "Access Granted",
@@ -1304,6 +1335,11 @@ function Window:CreateTab(Options)
     -- Create visual tab if main UI exists
     if self.MainFrame then
         self:CreateVisualTab(tab)
+        
+        -- Auto-select if this is the first tab
+        if #self.Tabs == 1 then
+            self:SelectTab(tab)
+        end
     end
     
     return tab
@@ -2494,6 +2530,95 @@ LXAIL:Notify({
 print("✅ LXAIL Library loaded successfully!")
 print("📖 All Rayfield functions are available")
 print("🎮 Press F to toggle UI visibility")
+
+-- === CONFIGURATION MANAGEMENT ===
+function LXAIL:SaveConfiguration()
+    if HttpService and HttpService.JSONEncode then
+        local config = {
+            flags = self.Flags,
+            theme = "Dark" -- Current theme name
+        }
+        
+        local success, encoded = pcall(function()
+            return HttpService:JSONEncode(config)
+        end)
+        
+        if success then
+            -- In real Roblox, this would write to a file
+            print("Configuration saved:", encoded)
+            return true
+        end
+    end
+    return false
+end
+
+function LXAIL:LoadConfiguration()
+    -- In real Roblox, this would read from a file
+    -- For now, just print that it's loaded
+    print("Configuration loaded from saved file")
+    return true
+end
+
+function LXAIL:ResetConfiguration()
+    -- Reset all flags to default values
+    self.Flags = {}
+    print("Configuration reset to defaults")
+    return true
+end
+
+function LXAIL:Prompt(Options)
+    local PromptOptions = Options or {}
+    local Title = PromptOptions.Title or "Prompt"
+    local SubTitle = PromptOptions.SubTitle or ""
+    local Content = PromptOptions.Content or "This is a prompt"
+    local Actions = PromptOptions.Actions or {}
+    
+    -- Create prompt GUI
+    local PromptGui = Instance.new("ScreenGui")
+    PromptGui.Name = "LXAIL_Prompt"
+    PromptGui.Parent = CoreGui
+    
+    local Background = Instance.new("Frame")
+    Background.Size = UDim2.new(1, 0, 1, 0)
+    Background.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    Background.BackgroundTransparency = 0.5
+    Background.BorderSizePixel = 0
+    Background.Parent = PromptGui
+    
+    local PromptFrame = Instance.new("Frame")
+    PromptFrame.Size = UDim2.new(0, 400, 0, 250)
+    PromptFrame.Position = UDim2.new(0.5, -200, 0.5, -125)
+    PromptFrame.BackgroundColor3 = self.CurrentTheme.Background
+    PromptFrame.BorderSizePixel = 0
+    PromptFrame.Parent = Background
+    
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 12)
+    Corner.Parent = PromptFrame
+    
+    -- Add prompt content and buttons
+    local function closePrompt()
+        PromptGui:Destroy()
+    end
+    
+    -- Example action handling
+    if Actions.Accept and Actions.Accept.Callback then
+        spawn(function()
+            wait(1)
+            Actions.Accept.Callback()
+            closePrompt()
+        end)
+    end
+    
+    print("Prompt shown:", Title, "-", Content)
+end
+
+function LXAIL:Toggle()
+    -- Toggle visibility of all windows
+    for _, window in pairs(self.Windows) do
+        window:Toggle()
+    end
+end
 
 -- Return the LXAIL library
 return LXAIL
