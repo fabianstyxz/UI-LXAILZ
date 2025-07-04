@@ -752,6 +752,7 @@ function LXAIL:CreateWindow(Options)
     local ConfigurationSaving = WindowOptions.ConfigurationSaving
     local Discord = WindowOptions.Discord
     local KeySystem = WindowOptions.KeySystem
+    local KeySettings = WindowOptions.KeySettings
     local Theme = WindowOptions.Theme
     
     -- Store configuration settings
@@ -921,13 +922,33 @@ function LXAIL:CreateWindow(Options)
     }
     
     -- Check if KeySystem is enabled and show it
-    if KeySystem then
+    if KeySystem == true and KeySettings then
         print("🔑 KeySystem enabled, showing authentication")
         -- Hide main window initially
         mainGui.Enabled = false
         
         -- Show key system and wait for authentication
-        self:ShowKeySystem(KeySystem, function()
+        self:ShowKeySystem(KeySettings, function()
+            print("🔑 KeySystem authenticated, showing main window")
+            mainGui.Enabled = true
+        end)
+    elseif KeySystem == true and not KeySettings then
+        print("⚠️ KeySystem enabled but KeySettings not provided - using defaults")
+        -- Hide main window initially
+        mainGui.Enabled = false
+        
+        -- Show key system with default settings
+        local defaultKeySettings = {
+            Title = "LXAIL BETA",
+            Subtitle = "Key System",
+            Note = "🔑 Complete the steps to get your key,\nthen paste it below to unlock the script.",
+            FileName = "LxailKey",
+            SaveKey = true,
+            GrabKeyFromSite = false,
+            Key = {"defaultkey123"}
+        }
+        
+        self:ShowKeySystem(defaultKeySettings, function()
             print("🔑 KeySystem authenticated, showing main window")
             mainGui.Enabled = true
         end)

@@ -48,6 +48,10 @@ args = "LXAIL Fixed Test"
 task = "workflow.run"
 args = "All Bugs Fixed Test"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "KeySystem New Format Test"
+
 [[workflows.workflow]]
 name = "Roblox UI Library"
 author = "agent"
@@ -119,3 +123,11 @@ author = "agent"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "lua Test_All_Bugs_Fixed.lua"
+
+[[workflows.workflow]]
+name = "KeySystem New Format Test"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "lua Test_KeySystem_New_Format.lua"
