@@ -8,17 +8,216 @@
 --]]
 
 -- === ROBLOX SERVICES ===
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-local HttpService = game:GetService("HttpService")
-local TextService = game:GetService("TextService")
-local GuiService = game:GetService("GuiService")
-local Players = game:GetService("Players")
-local CoreGui = game:GetService("CoreGui")
+-- Mock services for local testing
+local TweenService, UserInputService, RunService, HttpService, TextService, GuiService, Players, CoreGui, Player, PlayerGui
 
-local Player = Players.LocalPlayer
-local PlayerGui = Player:WaitForChild("PlayerGui")
+if game then
+    -- Running in Roblox environment
+    TweenService = game:GetService("TweenService")
+    UserInputService = game:GetService("UserInputService")
+    RunService = game:GetService("RunService")
+    HttpService = game:GetService("HttpService")
+    TextService = game:GetService("TextService")
+    GuiService = game:GetService("GuiService")
+    Players = game:GetService("Players")
+    CoreGui = game:GetService("CoreGui")
+    Player = Players.LocalPlayer
+    PlayerGui = Player:WaitForChild("PlayerGui")
+else
+    -- Mock environment for local testing
+    TweenService = {
+        Create = function(obj, info, props) 
+            return {
+                Play = function() end,
+                Completed = {Connect = function() end}
+            } 
+        end
+    }
+    UserInputService = {
+        InputBegan = {Connect = function() end},
+        InputChanged = {Connect = function() end},
+        InputEnded = {Connect = function() end}
+    }
+    RunService = {
+        Heartbeat = {Connect = function() end}
+    }
+    HttpService = {
+        JSONEncode = function(t) return "{}" end,
+        JSONDecode = function(s) return {} end
+    }
+    TextService = {
+        GetTextSize = function() return Vector2.new(100, 20) end
+    }
+    GuiService = {}
+    Players = {
+        LocalPlayer = {
+            Name = "LocalPlayer"
+        }
+    }
+    CoreGui = {}
+    Player = Players.LocalPlayer
+    PlayerGui = {}
+    
+    -- Mock global objects
+    if not _G.Instance then
+        _G.Instance = {
+            new = function(className)
+                return {
+                    ClassName = className,
+                    Name = "",
+                    Parent = nil,
+                    Size = UDim2.new(0, 0, 0, 0),
+                    Position = UDim2.new(0, 0, 0, 0),
+                    BackgroundColor3 = Color3.new(1, 1, 1),
+                    BackgroundTransparency = 0,
+                    BorderSizePixel = 0,
+                    Text = "",
+                    TextColor3 = Color3.new(0, 0, 0),
+                    TextSize = 14,
+                    Font = "Gotham",
+                    TextXAlignment = "Left",
+                    TextYAlignment = "Center",
+                    TextWrapped = false,
+                    Visible = true,
+                    Active = false,
+                    Draggable = false,
+                    ResetOnSpawn = false,
+                    MouseButton1Click = {Connect = function() end},
+                    InputBegan = {Connect = function() end},
+                    InputChanged = {Connect = function() end},
+                    TweenPosition = function() end,
+                    TweenSize = function() end,
+                    Destroy = function() end,
+                    FillDirection = "Vertical",
+                    SortOrder = "LayoutOrder",
+                    Padding = UDim.new(0, 0),
+                    CornerRadius = UDim.new(0, 0),
+                    GetPropertyChangedSignal = function() 
+                        return {Connect = function() end}
+                    end,
+                    GetChildren = function()
+                        return {}
+                    end,
+                    FocusLost = {Connect = function() end},
+                    AbsoluteSize = Vector2.new(100, 100)
+                }
+            end
+        }
+    end
+    
+    if not _G.UDim2 then
+        _G.UDim2 = {
+            new = function(xScale, xOffset, yScale, yOffset)
+                return {
+                    X = {Scale = xScale or 0, Offset = xOffset or 0},
+                    Y = {Scale = yScale or 0, Offset = yOffset or 0}
+                }
+            end
+        }
+    end
+    
+    if not _G.Color3 then
+        _G.Color3 = {
+            new = function(r, g, b)
+                return {R = r or 0, G = g or 0, B = b or 0}
+            end,
+            fromRGB = function(r, g, b)
+                return {R = (r or 0)/255, G = (g or 0)/255, B = (b or 0)/255}
+            end
+        }
+    end
+    
+    if not _G.Vector2 then
+        _G.Vector2 = {
+            new = function(x, y)
+                return {X = x or 0, Y = y or 0}
+            end
+        }
+    end
+    
+    if not _G.UDim then
+        _G.UDim = {
+            new = function(scale, offset)
+                return {Scale = scale or 0, Offset = offset or 0}
+            end
+        }
+    end
+    
+    if not _G.TweenInfo then
+        _G.TweenInfo = {
+            new = function(...)
+                return {}
+            end
+        }
+    end
+    
+    if not _G.Enum then
+        _G.Enum = {
+            EasingStyle = {
+                Quart = "Quart",
+                Sine = "Sine"
+            },
+            EasingDirection = {
+                Out = "Out",
+                In = "In"
+            },
+            Font = {
+                Gotham = "Gotham",
+                GothamBold = "GothamBold"
+            },
+            TextXAlignment = {
+                Left = "Left",
+                Center = "Center",
+                Right = "Right"
+            },
+            TextYAlignment = {
+                Top = "Top",
+                Center = "Center",
+                Bottom = "Bottom"
+            },
+            UserInputType = {
+                MouseButton1 = "MouseButton1",
+                Touch = "Touch",
+                MouseMovement = "MouseMovement"
+            },
+            UserInputState = {
+                Begin = "Begin",
+                Change = "Change",
+                End = "End"
+            },
+            FillDirection = {
+                Vertical = "Vertical",
+                Horizontal = "Horizontal"
+            },
+            SortOrder = {
+                LayoutOrder = "LayoutOrder",
+                Name = "Name"
+            },
+            KeyCode = {
+                F = {Name = "F"},
+                LeftShift = {Name = "LeftShift"}
+            }
+        }
+    end
+    
+    if not _G.spawn then
+        _G.spawn = function(func)
+            func()
+        end
+    end
+    
+    if not _G.wait then
+        _G.wait = function(time)
+            -- Mock wait function
+        end
+    end
+    
+    if not math.clamp then
+        math.clamp = function(value, min, max)
+            return math.min(math.max(value, min), max)
+        end
+    end
+end
 
 -- === LXAIL MAIN LIBRARY ===
 local LXAIL = {
@@ -345,6 +544,7 @@ function Tab.new(parent, options)
     self.Name = opts.Name or "Tab"
     self.Icon = opts.Icon
     self.Parent = parent
+    self.Window = parent  -- Add proper Window reference
     self.Components = {}
     
     return self
