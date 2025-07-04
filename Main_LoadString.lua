@@ -602,6 +602,25 @@ function LXAIL:Notify(options)
     
     playSound("rbxassetid://131961136")
     
+    -- CRITICAL FIX: Create notification container if it doesn't exist
+    local notificationContainer = nil
+    if game then
+        -- Create notification container in Roblox environment
+        local existingContainer = playerGui:FindFirstChild("LXAIL_Notifications")
+        if not existingContainer then
+            local gui = Instance.new("ScreenGui")
+            gui.Name = "LXAIL_Notifications"
+            gui.ResetOnSpawn = false
+            gui.IgnoreGuiInset = true
+            gui.Parent = playerGui
+            notificationContainer = gui
+        else
+            notificationContainer = existingContainer
+        end
+    else
+        notificationContainer = playerGui
+    end
+    
     -- Create notification
     local notification = Instance.new("Frame")
     notification.Name = "LXAILNotification"
@@ -609,7 +628,7 @@ function LXAIL:Notify(options)
     notification.Position = UDim2.new(1, -440, 0, 20 + (#self.Notifications * 110))
     notification.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     notification.BorderSizePixel = 0
-    notification.Parent = playerGui
+    notification.Parent = notificationContainer
     
     local notifCorner = Instance.new("UICorner")
     notifCorner.CornerRadius = UDim.new(0, 12)
