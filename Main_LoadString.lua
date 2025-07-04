@@ -654,11 +654,11 @@ function LXAIL:Notify(options)
         notificationContainer = CoreGui
     end
     
-    -- Create notification (smaller size)
+    -- Create notification (extra small size)
     local notification = Instance.new("Frame")
     notification.Name = "LXAILNotification"
-    notification.Size = UDim2.new(0, 300, 0, 70)
-    notification.Position = UDim2.new(1, -320, 0, 20 + (#self.Notifications * 80))
+    notification.Size = UDim2.new(0, 250, 0, 55)
+    notification.Position = UDim2.new(1, -270, 0, 20 + (#self.Notifications * 65))
     notification.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     notification.BorderSizePixel = 0
     notification.Parent = notificationContainer
@@ -699,14 +699,14 @@ function LXAIL:Notify(options)
     }
     typeBorder.BackgroundColor3 = typeColors[notificationType] or typeColors.Info
     
-    -- Icon (smaller)
+    -- Icon (extra small)
     local icon = Instance.new("TextLabel")
     icon.Name = "Icon"
-    icon.Size = UDim2.new(0, 35, 0, 35)
-    icon.Position = UDim2.new(0, 10, 0, 17)
+    icon.Size = UDim2.new(0, 28, 0, 28)
+    icon.Position = UDim2.new(0, 10, 0, 13)
     icon.BackgroundTransparency = 1
     icon.TextColor3 = typeBorder.BackgroundColor3
-    icon.TextSize = 20
+    icon.TextSize = 16
     icon.Font = Enum.Font.GothamBold
     icon.TextXAlignment = Enum.TextXAlignment.Center
     icon.TextYAlignment = Enum.TextYAlignment.Center
@@ -721,51 +721,51 @@ function LXAIL:Notify(options)
     }
     icon.Text = typeIcons[notificationType] or typeIcons.Info
     
-    -- Title (smaller)
+    -- Title (extra small)
     local titleLabel = Instance.new("TextLabel")
     titleLabel.Name = "Title"
-    titleLabel.Size = UDim2.new(1, -60, 0, 20)
-    titleLabel.Position = UDim2.new(0, 50, 0, 8)
+    titleLabel.Size = UDim2.new(1, -50, 0, 16)
+    titleLabel.Position = UDim2.new(0, 45, 0, 5)
     titleLabel.BackgroundTransparency = 1
     titleLabel.Text = title
     titleLabel.TextColor3 = Color3.fromRGB(230, 230, 230)
-    titleLabel.TextSize = 16
+    titleLabel.TextSize = 14
     titleLabel.Font = Enum.Font.GothamBold
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
     titleLabel.TextYAlignment = Enum.TextYAlignment.Center
     titleLabel.Parent = notification
     
-    -- Content (smaller)
+    -- Content (extra small)
     local contentLabel = Instance.new("TextLabel")
     contentLabel.Name = "Content"
-    contentLabel.Size = UDim2.new(1, -60, 0, 25)
-    contentLabel.Position = UDim2.new(0, 50, 0, 28)
+    contentLabel.Size = UDim2.new(1, -50, 0, 30)
+    contentLabel.Position = UDim2.new(0, 45, 0, 22)
     contentLabel.BackgroundTransparency = 1
     contentLabel.Text = content
     contentLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
-    contentLabel.TextSize = 13
+    contentLabel.TextSize = 11
     contentLabel.Font = Enum.Font.Gotham
     contentLabel.TextXAlignment = Enum.TextXAlignment.Left
     contentLabel.TextYAlignment = Enum.TextYAlignment.Top
     contentLabel.TextWrapped = true
     contentLabel.Parent = notification
     
-    -- Close button
+    -- Close button (smaller)
     local closeButton = Instance.new("TextButton")
     closeButton.Name = "CloseButton"
-    closeButton.Size = UDim2.new(0, 20, 0, 20)
-    closeButton.Position = UDim2.new(1, -25, 0, 5)
+    closeButton.Size = UDim2.new(0, 18, 0, 18)
+    closeButton.Position = UDim2.new(1, -22, 0, 4)
     closeButton.BackgroundTransparency = 1
     closeButton.Text = "✕"
     closeButton.TextColor3 = Color3.fromRGB(180, 180, 180)
-    closeButton.TextSize = 16
+    closeButton.TextSize = 14
     closeButton.Font = Enum.Font.GothamBold
     closeButton.Parent = notification
     
-    -- Animations (adjusted for smaller size)
-    notification.Position = UDim2.new(1, 0, 0, 20 + (#self.Notifications * 80))
+    -- Animations (adjusted for extra small size)
+    notification.Position = UDim2.new(1, 0, 0, 20 + (#self.Notifications * 65))
     tween(notification, TweenInfo.new(0.5, Enum.EasingStyle.Back), {
-        Position = UDim2.new(1, -320, 0, 20 + (#self.Notifications * 80))
+        Position = UDim2.new(1, -270, 0, 20 + (#self.Notifications * 65))
     })
     
     -- Add to notifications list
@@ -785,10 +785,10 @@ function LXAIL:Notify(options)
                 end
             end
             
-            -- Reposition remaining notifications (adjusted for smaller size)
+            -- Reposition remaining notifications (adjusted for extra small size)
             for i, notif in ipairs(self.Notifications) do
                 tween(notif, TweenInfo.new(0.3), {
-                    Position = UDim2.new(1, -320, 0, 20 + ((i-1) * 80))
+                    Position = UDim2.new(1, -270, 0, 20 + ((i-1) * 65))
                 })
             end
         end)

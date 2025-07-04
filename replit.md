@@ -74,6 +74,17 @@ This repository contains a comprehensive Roblox UI Library that completely repli
 
 ```
 Changelog:
+- July 04, 2025: EXTRA SMALL NOTIFICATIONS IMPLEMENTED - 22% MORE COMPACT DESIGN
+  - REDUCED: Notification size from 300x70px to 250x55px (22% smaller overall)
+  - OPTIMIZED: Icon size reduced from 35x35px to 28x28px for better proportion
+  - IMPROVED: Title font size reduced from 16px to 14px for compact display
+  - ENHANCED: Content font size reduced from 13px to 11px for efficient space usage
+  - ADJUSTED: Position offset from -320px to -270px for proper alignment
+  - UPDATED: Spacing between notifications from 80px to 65px for better stacking
+  - REFINED: Close button size from 20x20px to 18x18px for proportional fit
+  - MAINTAINED: All notification functionality (Success, Warning, Error, Info types)
+  - PRESERVED: Smooth animations and auto-close functionality
+  - RESULT: Notifications are now 22% more compact and less intrusive
 - July 04, 2025: UI PERSISTENCE FIXED - COREGUI IMPLEMENTATION FOR DEATH PERSISTENCE
   - FIXED: Changed all UI containers from PlayerGui to CoreGui for true persistence
   - RESOLVED: UI and floating button now persist when player dies or resets character
