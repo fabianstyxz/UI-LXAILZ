@@ -42,15 +42,15 @@ args = "Simple Modern Test"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "LXAIL Fixed Test"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "All Bugs Fixed Test"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
 args = "KeySystem New Format Test"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Final User Format Test"
 
 [[workflows.workflow]]
 name = "Roblox UI Library"
@@ -109,14 +109,6 @@ task = "shell.exec"
 args = "lua Simple_Modern_Test.lua"
 
 [[workflows.workflow]]
-name = "LXAIL Fixed Test"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "lua Test_Fixed_LoadString.lua"
-
-[[workflows.workflow]]
 name = "All Bugs Fixed Test"
 author = "agent"
 
@@ -131,3 +123,11 @@ author = "agent"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "lua Test_KeySystem_New_Format.lua"
+
+[[workflows.workflow]]
+name = "Final User Format Test"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "lua Test_User_Final_Format.lua"

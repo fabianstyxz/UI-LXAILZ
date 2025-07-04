@@ -752,7 +752,6 @@ function LXAIL:CreateWindow(Options)
     local ConfigurationSaving = WindowOptions.ConfigurationSaving
     local Discord = WindowOptions.Discord
     local KeySystem = WindowOptions.KeySystem
-    local KeySettings = WindowOptions.KeySettings
     local Theme = WindowOptions.Theme
     
     -- Store configuration settings
@@ -921,34 +920,14 @@ function LXAIL:CreateWindow(Options)
         CurrentTab = nil
     }
     
-    -- Check if KeySystem is enabled and show it
-    if KeySystem == true and KeySettings then
+    -- Check if KeySystem is enabled and show it (Rayfield format compatibility)
+    if KeySystem and KeySystem.Enabled == true then
         print("🔑 KeySystem enabled, showing authentication")
         -- Hide main window initially
         mainGui.Enabled = false
         
         -- Show key system and wait for authentication
-        self:ShowKeySystem(KeySettings, function()
-            print("🔑 KeySystem authenticated, showing main window")
-            mainGui.Enabled = true
-        end)
-    elseif KeySystem == true and not KeySettings then
-        print("⚠️ KeySystem enabled but KeySettings not provided - using defaults")
-        -- Hide main window initially
-        mainGui.Enabled = false
-        
-        -- Show key system with default settings
-        local defaultKeySettings = {
-            Title = "LXAIL BETA",
-            Subtitle = "Key System",
-            Note = "🔑 Complete the steps to get your key,\nthen paste it below to unlock the script.",
-            FileName = "LxailKey",
-            SaveKey = true,
-            GrabKeyFromSite = false,
-            Key = {"defaultkey123"}
-        }
-        
-        self:ShowKeySystem(defaultKeySettings, function()
+        self:ShowKeySystem(KeySystem, function()
             print("🔑 KeySystem authenticated, showing main window")
             mainGui.Enabled = true
         end)
@@ -2608,7 +2587,147 @@ function LXAIL:Toggle()
     end
 end
 
--- Duplicate CreateWindow function removed - using the original one above
+-- CreateFloatingButton Function
+function LXAIL:CreateFloatingButton(Options)
+    local ButtonOptions = Options or {}
+    local Icon = ButtonOptions.Icon or "🎮"
+    local Callback = ButtonOptions.Callback or function() end
+    
+    print("🔘 Creating floating button with icon:", Icon)
+    
+    -- Create floating button container
+    local floatingContainer = Instance.new("Frame")
+    floatingContainer.Name = "FloatingButtonContainer"
+    floatingContainer.Size = UDim2.new(0, 60, 0, 60)
+    floatingContainer.Position = UDim2.new(1, -80, 1, -80)
+    floatingContainer.BackgroundTransparency = 1
+    floatingContainer.BorderSizePixel = 0
+    floatingContainer.ZIndex = 1000
+    
+    -- Check if PlayerGui exists (Roblox environment)
+    local parent = game and game.Players and game.Players.LocalPlayer and game.Players.LocalPlayer:WaitForChild("PlayerGui") or nil
+    if parent then
+        floatingContainer.Parent = parent
+    else
+        print("⚠️ PlayerGui not available, skipping floating button")
+        return
+    end
+    
+    -- Create shadow
+    local shadow = Instance.new("Frame")
+    shadow.Name = "Shadow"
+    shadow.Size = UDim2.new(1, 8, 1, 8)
+    shadow.Position = UDim2.new(0, 4, 0, 4)
+    shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    shadow.BackgroundTransparency = 0.6
+    shadow.BorderSizePixel = 0
+    shadow.ZIndex = 999
+    shadow.Parent = floatingContainer
+    CreateCorner(shadow, 34)
+    
+    -- Create main button
+    local floatingButton = Instance.new("TextButton")
+    floatingButton.Name = "FloatingButton"
+    floatingButton.Size = UDim2.new(1, 0, 1, 0)
+    floatingButton.Position = UDim2.new(0, 0, 0, 0)
+    floatingButton.BackgroundColor3 = self.ModernTheme.Accent
+    floatingButton.BorderSizePixel = 0
+    floatingButton.Text = ""
+    floatingButton.ZIndex = 1001
+    floatingButton.Parent = floatingContainer
+    CreateCorner(floatingButton, 30)
+    
+    -- Create icon label
+    local iconLabel = Instance.new("TextLabel")
+    iconLabel.Name = "Icon"
+    iconLabel.Size = UDim2.new(1, 0, 1, 0)
+    iconLabel.Position = UDim2.new(0, 0, 0, 0)
+    iconLabel.BackgroundTransparency = 1
+    iconLabel.Text = Icon
+    iconLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    iconLabel.TextScaled = true
+    iconLabel.Font = Enum.Font.GothamBold
+    iconLabel.ZIndex = 1002
+    iconLabel.Parent = floatingButton
+    
+    -- Setup dragging
+    local isDragging = false
+    local dragStart = nil
+    local startPos = nil
+    local clickTime = 0
+    
+    floatingButton.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            clickTime = tick()
+            isDragging = false
+            dragStart = input.Position
+            startPos = floatingContainer.Position
+            
+            -- Wait a bit to see if this is a drag or click
+            wait(0.1)
+            if input.UserInputState == Enum.UserInputState.Begin then
+                isDragging = true
+                print("🔘 Started dragging floating button")
+            end
+        end
+    end)
+    
+    floatingButton.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            if isDragging and dragStart then
+                local delta = input.Position - dragStart
+                floatingContainer.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            end
+        end
+    end)
+    
+    floatingButton.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            local timeDiff = tick() - clickTime
+            if isDragging then
+                isDragging = false
+                -- If minimal movement and quick, treat as click
+                if dragStart and (input.Position - dragStart).Magnitude < 10 and timeDiff < 0.3 then
+                    print("🔘 Floating button clicked (after drag)")
+                    -- Animate click
+                    CreateTween(floatingButton, 0.1, {Size = UDim2.new(0.9, 0, 0.9, 0)})
+                    wait(0.1)
+                    CreateTween(floatingButton, 0.1, {Size = UDim2.new(1, 0, 1, 0)})
+                    if Callback then
+                        Callback()
+                    end
+                end
+                print("🔘 Finished dragging floating button")
+            else
+                -- Direct click without drag
+                print("🔘 Floating button clicked (direct)")
+                -- Animate click
+                CreateTween(floatingButton, 0.1, {Size = UDim2.new(0.9, 0, 0.9, 0)})
+                wait(0.1)
+                CreateTween(floatingButton, 0.1, {Size = UDim2.new(1, 0, 1, 0)})
+                if Callback then
+                    Callback()
+                end
+            end
+            dragStart = nil
+            startPos = nil
+        end
+    end)
+    
+    -- Hover effects
+    floatingButton.MouseEnter:Connect(function()
+        CreateTween(floatingButton, 0.2, {BackgroundColor3 = self.ModernTheme.AccentHover})
+        CreateTween(floatingButton, 0.2, {Size = UDim2.new(1.1, 0, 1.1, 0)})
+    end)
+    
+    floatingButton.MouseLeave:Connect(function()
+        CreateTween(floatingButton, 0.2, {BackgroundColor3 = self.ModernTheme.Accent})
+        CreateTween(floatingButton, 0.2, {Size = UDim2.new(1, 0, 1, 0)})
+    end)
+    
+    print("✅ Floating button created successfully with dragging support")
+    return floatingContainer
+end
 
 -- === RETURN LIBRARY ===
 if game then
