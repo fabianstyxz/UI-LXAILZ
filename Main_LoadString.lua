@@ -1206,8 +1206,72 @@ function LXAIL:CreateWindow(options)
     close.MouseLeave:Connect(function()
         tween(close, TweenInfo.new(0.15), {TextColor3 = Color3.fromRGB(230, 230, 230)})
     end)
+    
+    -- ScreenGui separado para el botón flotante (siempre visible)
+    local buttonGui = Instance.new("ScreenGui")
+    buttonGui.Name = "ToggleButtonGui"
+    buttonGui.Parent = player:WaitForChild("PlayerGui")
+    buttonGui.IgnoreGuiInset = true
+    buttonGui.ResetOnSpawn = false
+
+    local draggableButton = Instance.new("ImageButton")
+    draggableButton.Name = "ToggleButton"
+    draggableButton.Image = "rbxassetid://100710776166961"
+    draggableButton.Size = UDim2.new(0, 40, 0, 40) -- tamaño más pequeño
+    draggableButton.Position = UDim2.new(0, 20, 0, 200)
+    draggableButton.BackgroundTransparency = 1
+    draggableButton.AnchorPoint = Vector2.new(0, 0)
+    draggableButton.ZIndex = 1000
+    draggableButton.Parent = buttonGui
+
+    -- Drag para botón
+    local dragging = false
+    local dragStart, startPos
+
+    draggableButton.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = draggableButton.Position
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            draggableButton.Position = UDim2.new(
+                startPos.X.Scale, startPos.X.Offset + delta.X,
+                startPos.Y.Scale, startPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+
+    -- Toggle UI con animación clic
+    local visible = true
+
+    draggableButton.MouseButton1Click:Connect(function()
+        if not dragging then
+            local clickTween = TweenService:Create(draggableButton, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(0, 30, 0, 30)})
+            clickTween:Play()
+            clickTween.Completed:Wait()
+            local releaseTween = TweenService:Create(draggableButton, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Size = UDim2.new(0, 40, 0, 40)})
+            releaseTween:Play()
+
+            visible = not visible
+            mainGui.Enabled = visible
+        end
+    end)
+
+    -- Botón cerrar
     close.MouseButton1Click:Connect(function()
         mainGui.Enabled = false
+        visible = false
     end)
     
     -- Sidebar
