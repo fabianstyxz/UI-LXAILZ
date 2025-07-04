@@ -402,4 +402,120 @@ function Utils.Map(array, transform)
     return result
 end
 
+-- UI Helper functions for compatibility
+function Utils.CreateCorner(radius)
+    return {
+        CornerRadius = {Scale = 0, Offset = radius or 8},
+        Parent = nil
+    }
+end
+
+function Utils.CreateStroke(thickness, color)
+    return {
+        Thickness = thickness or 1,
+        Color = color or Color3.fromRGB(255, 255, 255),
+        Transparency = 0,
+        Parent = nil
+    }
+end
+
+function Utils.CreateGradient(colors, rotation)
+    return {
+        Color = colors or {},
+        Rotation = rotation or 0,
+        Parent = nil
+    }
+end
+
+function Utils.CreateShadow(size, transparency)
+    return {
+        Size = size or {X = 0, Y = 4},
+        Transparency = transparency or 0.3,
+        Color = Color3.fromRGB(0, 0, 0),
+        Parent = nil
+    }
+end
+
+function Utils.CreateTextLabel(text, properties)
+    local label = {
+        Text = text or "",
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        TextSize = 14,
+        Font = "Gotham",
+        TextWrapped = true,
+        BackgroundTransparency = 1,
+        Parent = nil
+    }
+    
+    if properties then
+        for key, value in pairs(properties) do
+            label[key] = value
+        end
+    end
+    
+    return label
+end
+
+function Utils.CreateFrame(properties)
+    local frame = {
+        Size = UDim2.new(1, 0, 1, 0),
+        Position = UDim2.new(0, 0, 0, 0),
+        BackgroundColor3 = Color3.fromRGB(25, 25, 25),
+        BackgroundTransparency = 0,
+        BorderSizePixel = 0,
+        Parent = nil
+    }
+    
+    if properties then
+        for key, value in pairs(properties) do
+            frame[key] = value
+        end
+    end
+    
+    return frame
+end
+
+function Utils.CreateButton(text, properties)
+    local button = {
+        Text = text or "Button",
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        TextSize = 14,
+        Font = "Gotham",
+        BackgroundColor3 = Color3.fromRGB(45, 45, 45),
+        BackgroundTransparency = 0,
+        BorderSizePixel = 0,
+        Parent = nil,
+        MouseButton1Click = {Connect = function() end}
+    }
+    
+    if properties then
+        for key, value in pairs(properties) do
+            button[key] = value
+        end
+    end
+    
+    return button
+end
+
+-- Animation helpers
+function Utils.CreateTween(object, info, properties)
+    -- Mock tween for local environment
+    return {
+        Play = function() end,
+        Pause = function() end,
+        Cancel = function() end,
+        Completed = {Connect = function() end}
+    }
+end
+
+function Utils.TypewriterEffect(textObject, finalText, speed, callback)
+    -- Mock typewriter effect for demo
+    if textObject then
+        textObject.Text = finalText
+    end
+    if callback then
+        callback()
+    end
+end
+
 return Utils

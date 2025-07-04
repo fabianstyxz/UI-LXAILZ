@@ -4,7 +4,13 @@
 
 -- Mock services for local environment compatibility
 local TweenService = {}
-local RunService = {}
+local RunService = {
+    Heartbeat = {
+        Connect = function(func)
+            return {Disconnect = function() end}
+        end
+    }
+}
 local Utils = require("Modules.Utils")
 
 local LoadingScreen = {}

@@ -24,6 +24,18 @@ args = "lua_test"
 task = "workflow.run"
 args = "Roblox UI Library Demo"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "LXAIL Complete Example"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "LXAIL Simple Demo"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "LXAIL Basic Demo"
+
 [[workflows.workflow]]
 name = "Roblox UI Library"
 author = "agent"
@@ -47,3 +59,27 @@ author = "agent"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "lua simple_demo.lua"
+
+[[workflows.workflow]]
+name = "LXAIL Complete Example"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "lua LXAIL_Example.lua"
+
+[[workflows.workflow]]
+name = "LXAIL Simple Demo"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "lua LXAIL_Simple_Demo.lua"
+
+[[workflows.workflow]]
+name = "LXAIL Basic Demo"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "lua LXAIL_Basic_Demo.lua"

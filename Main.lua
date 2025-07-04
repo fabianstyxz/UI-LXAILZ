@@ -1,16 +1,96 @@
 --[[
-    Modern UI Library for Roblox
-    Replicates Rayfield functionality with custom modern design
+    LXAIL - Modern UI Library for Roblox
+    Complete Rayfield functionality replica with custom modern design
     Compatible with loadstring() execution
+    
+    Created by: LXAIL Team
+    Version: 1.0.0
 --]]
 
--- This is a demo of the Modern UI Library for Roblox
+-- LXAIL - Complete UI Library for Roblox
 -- In Roblox, replace these with actual game services
+
+-- Mock global services for local environment
+_G.Instance = {
+    new = function(className)
+        return {
+            ClassName = className,
+            Name = "",
+            Parent = nil,
+            Font = "Gotham",
+            TextSize = 14,
+            Text = "",
+            TextWrapped = false,
+            Size = {X = 0, Y = 0},
+            Position = {X = 0, Y = 0},
+            BackgroundColor3 = {R = 1, G = 1, B = 1},
+            BackgroundTransparency = 0,
+            BorderSizePixel = 0,
+            ZIndex = 1,
+            Destroy = function() end
+        }
+    end
+}
+
+_G.UDim2 = {
+    new = function(xScale, xOffset, yScale, yOffset)
+        return {
+            X = {Scale = xScale, Offset = xOffset},
+            Y = {Scale = yScale, Offset = yOffset}
+        }
+    end
+}
+
+_G.Color3 = {
+    new = function(r, g, b)
+        return {R = r, G = g, B = b}
+    end,
+    fromRGB = function(r, g, b)
+        return {R = r/255, G = g/255, B = b/255}
+    end
+}
+
+_G.Vector2 = {
+    new = function(x, y)
+        return {X = x, Y = y}
+    end
+}
+
+_G.Enum = {
+    KeyCode = {F = "F", LeftShift = "LeftShift"},
+    EasingStyle = {Quad = "Quad", Sine = "Sine"},
+    EasingDirection = {In = "In", Out = "Out", InOut = "InOut"},
+    Font = {Gotham = "Gotham"}
+}
+
+-- Make globals available
+Instance = _G.Instance
+UDim2 = _G.UDim2
+Color3 = _G.Color3
+Vector2 = _G.Vector2
+Enum = _G.Enum
+
 local Players = {LocalPlayer = {}}
-local TweenService = {}
-local UserInputService = {}
-local RunService = {}
-local HttpService = {}
+local TweenService = {
+    Create = function(object, info, properties)
+        return Utils.CreateTween(object, info, properties)
+    end
+}
+local UserInputService = {
+    TouchEnabled = false,
+    KeyboardEnabled = true
+}
+local RunService = {
+    Heartbeat = {
+        Connect = function(func)
+            return {Disconnect = function() end}
+        end
+    }
+}
+local HttpService = {
+    JSONEncode = function(data) return "{}" end,
+    JSONDecode = function(json) return {} end
+}
 local GuiService = {}
 local CoreGui = {}
 
@@ -28,12 +108,12 @@ local ConfigManager = require("Modules.ConfigManager")
 local DiscordPrompt = require("Modules.DiscordPrompt")
 local FloatingButton = require("Modules.FloatingButton")
 
--- Main Library Class
-local Library = {}
-Library.__index = Library
+-- LXAIL Main Library Class
+local LXAIL = {}
+LXAIL.__index = LXAIL
 
-function Library:new()
-    local self = setmetatable({}, Library)
+function LXAIL:new()
+    local self = setmetatable({}, LXAIL)
     
     -- Initialize core properties
     self.Windows = {}
@@ -52,10 +132,10 @@ function Library:new()
     return self
 end
 
-function Library:InitializeGUI()
+function LXAIL:InitializeGUI()
     -- Create main ScreenGui
     self.MainScreenGui = Instance.new("ScreenGui")
-    self.MainScreenGui.Name = "ModernUILibrary"
+    self.MainScreenGui.Name = "LXAIL_UI"
     self.MainScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     self.MainScreenGui.ResetOnSpawn = false
     
@@ -73,7 +153,7 @@ function Library:InitializeGUI()
     self:SetupGlobalKeybind()
 end
 
-function Library:SetupGlobalKeybind()
+function LXAIL:SetupGlobalKeybind()
     if self.KeybindConnection then
         self.KeybindConnection:Disconnect()
     end
@@ -87,13 +167,13 @@ function Library:SetupGlobalKeybind()
     end)
 end
 
-function Library:ToggleUI()
+function LXAIL:ToggleUI()
     for _, window in pairs(self.Windows) do
         window:Toggle()
     end
 end
 
-function Library:CreateWindow(options)
+function LXAIL:CreateWindow(options)
     local opts = options or {}
     
     -- Show loading screen if specified
@@ -124,7 +204,7 @@ function Library:CreateWindow(options)
     return window
 end
 
-function Library:Notify(options)
+function LXAIL:Notify(options)
     local opts = options or {}
     local notification = Notification:new(self.MainScreenGui, opts, self.Theme)
     table.insert(self.Notifications, notification)
@@ -145,7 +225,7 @@ function Library:Notify(options)
     end
 end
 
-function Library:CreateKeySystem(options)
+function LXAIL:CreateKeySystem(options)
     local opts = options or {}
     self.KeySystemEnabled = true
     
@@ -154,19 +234,19 @@ function Library:CreateKeySystem(options)
     return keySystem
 end
 
-function Library:CreateDiscordPrompt(options)
+function LXAIL:CreateDiscordPrompt(options)
     local opts = options or {}
     local discordPrompt = DiscordPrompt:new(self.MainScreenGui, opts, self.Theme)
     
     return discordPrompt
 end
 
-function Library:SetKeybind(keyCode)
+function LXAIL:SetKeybind(keyCode)
     self.ShowKeybind = keyCode
     self:SetupGlobalKeybind()
 end
 
-function Library:SetTheme(themeName)
+function LXAIL:SetTheme(themeName)
     self.Theme:SetTheme(themeName)
     
     -- Update all windows with new theme
@@ -180,15 +260,15 @@ function Library:SetTheme(themeName)
     end
 end
 
-function Library:SaveConfig(configName)
+function LXAIL:SaveConfig(configName)
     return self.ConfigManager:SaveConfig(configName or "default")
 end
 
-function Library:LoadConfig(configName)
+function LXAIL:LoadConfig(configName)
     return self.ConfigManager:LoadConfig(configName or "default")
 end
 
-function Library:Destroy()
+function LXAIL:Destroy()
     -- Disconnect keybind
     if self.KeybindConnection then
         self.KeybindConnection:Disconnect()
@@ -215,4 +295,4 @@ function Library:Destroy()
 end
 
 -- Export the library
-return Library
+return LXAIL
